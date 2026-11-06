@@ -1,0 +1,26 @@
+{
+  "name": "aolon-gts3-watchface-studio",
+  "version": "1.0.0",
+  "description": "Visual Watchface Studio, Binary Compiler & Zero-Config MITM Injector for Aolon GTS 3 and UTE-based Smartwatches (390x450 AMOLED)",
+  "type": "module",
+  "main": "run_all.mjs",
+  "scripts": {
+    "start": "node run_all.mjs",
+    "studio": "node studio.mjs",
+    "proxy": "node proxy.mjs"
+  },
+  "keywords": [
+    "watchface",
+    "smartwatch",
+    "aolon",
+    "aolon-gts3",
+    "gloryfit",
+    "ute",
+    "mitm-proxy",
+    "reverse-engineering",
+    "casio-retro",
+    "loki-tva"
+  ],
+  "author": "",
+  "license": "MIT"
+}

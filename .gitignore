@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment & OS
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Local MITM Generated Certificates & Host Keys
+# CA private key, certs, and host certs are auto-generated on first run by proxy.mjs
+certs/*.key
+certs/*.crt
+certs/*.cnf
+certs/hosts/
+
+# Local capture & scratch verification dumps
+unpacked/
+captured/*.bin
+captured/*.meta.json
+
+# Build inject artifact (auto-generated when clicking Compile in Studio)
+inject/custom.bin

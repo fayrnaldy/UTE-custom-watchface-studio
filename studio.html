@@ -1,0 +1,2056 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Aolon GTS3 Watchface Studio (390×450)</title>
+  <style>
+    :root {
+      --bg-app: #0b0e14;
+      --bg-panel: #131822;
+      --bg-card: #1b2230;
+      --bg-input: #0e131b;
+      --border: #2a3447;
+      --accent: #ff951c;
+      --accent-hover: #ffad47;
+      --accent-dim: rgba(255, 149, 28, 0.16);
+      --cyan: #38bdf8;
+      --green: #10b981;
+      --danger: #ef4444;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-app);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    /* Top Header */
+    header {
+      height: 58px;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 0.3px;
+    }
+    .brand-badge {
+      background: var(--accent);
+      color: #140a00;
+      font-weight: 900;
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-size: 12px;
+      letter-spacing: 1.5px;
+    }
+    .toolbar-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    button, select, input[type="text"], input[type="number"] {
+      font-family: inherit;
+      font-size: 12.5px;
+      color: var(--text);
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 6px 10px;
+      outline: none;
+    }
+    button {
+      cursor: pointer;
+      background: var(--bg-card);
+      font-weight: 600;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    button:hover { border-color: #475569; background: #242e42; }
+    button.primary {
+      background: linear-gradient(135deg, #ff951c, #ea580c);
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      font-weight: 700;
+      box-shadow: 0 2px 12px rgba(234, 88, 12, 0.35);
+    }
+    button.primary:hover { filter: brightness(1.08); }
+    button.danger { color: #fca5a5; border-color: #7f1d1d; background: rgba(127,29,29,0.2); }
+    button.danger:hover { background: rgba(185,28,28,0.35); }
+    button.sm { padding: 4px 8px; font-size: 11.5px; }
+
+    /* Main Workspace Layout */
+    .workspace {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 300px 1fr 330px;
+      min-height: 0;
+    }
+    .sidebar {
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .sidebar.right {
+      border-right: none;
+      border-left: 1px solid var(--border);
+    }
+    .panel-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: #0f131c;
+    }
+    .panel-tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+    .panel-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+      background: var(--bg-panel);
+    }
+    .panel-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+    }
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      margin: 12px 0 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .section-title:first-child { margin-top: 0; }
+
+    /* Layer List */
+    .layer-list {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .layer-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: var(--bg-card);
+      border: 1px solid transparent;
+      cursor: pointer;
+      font-size: 12.5px;
+    }
+    .layer-item:hover { border-color: #3b4963; }
+    .layer-item.selected {
+      background: var(--accent-dim);
+      border-color: var(--accent);
+    }
+    .layer-tag {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #0f172a;
+      color: var(--cyan);
+      margin-right: 7px;
+    }
+    .layer-tag.sensor { color: #fbbf24; background: rgba(251, 191, 36, 0.14); }
+    .add-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    /* Center Stage */
+    .stage {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(circle at center, #182030 0%, #0b0e14 75%);
+      overflow: auto;
+      padding: 20px;
+    }
+    .stage-controls {
+      position: absolute;
+      top: 14px;
+      display: flex;
+      gap: 8px;
+      background: rgba(19, 24, 34, 0.9);
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      backdrop-filter: blur(8px);
+      z-index: 5;
+      font-size: 12px;
+      align-items: center;
+    }
+    .watch-body {
+      position: relative;
+      padding: 18px;
+      border-radius: 88px;
+      background: linear-gradient(145deg, #2b3342, #12161f);
+      box-shadow:
+        0 24px 60px rgba(0, 0, 0, 0.75),
+        inset 0 2px 3px rgba(255, 255, 255, 0.15),
+        inset 0 -2px 5px rgba(0, 0, 0, 0.8);
+      border: 2px solid #384357;
+    }
+    /* Physical GTS3 Digital Crown on right side */
+    .watch-crown {
+      position: absolute;
+      right: -11px;
+      top: 138px;
+      width: 10px;
+      height: 48px;
+      border-radius: 0 6px 6px 0;
+      background: linear-gradient(180deg, #4b5563, #1f2937, #4b5563);
+      border: 1px solid #64748b;
+      border-left: none;
+    }
+    .screen-wrap {
+      position: relative;
+      width: 390px;
+      height: 450px;
+      border-radius: 68px;
+      overflow: hidden;
+      background: #000;
+      box-shadow: inset 0 0 0 2px #000;
+    }
+    canvas#editorCanvas {
+      display: block;
+      width: 390px;
+      height: 450px;
+      cursor: crosshair;
+    }
+    .coord-hud {
+      margin-top: 14px;
+      font-size: 12px;
+      color: var(--muted);
+      background: rgba(19, 24, 34, 0.85);
+      padding: 5px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+    }
+
+    /* Form Controls */
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 9px;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 9px;
+    }
+    .field label {
+      font-size: 11.5px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+    }
+    .field input, .field select, .field textarea {
+      width: 100%;
+    }
+    input[type="color"] {
+      width: 100%;
+      height: 32px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: var(--bg-input);
+      padding: 2px;
+      cursor: pointer;
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+    .status-pill {
+      font-size: 11.5px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.14);
+      color: #6ee7b7;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      white-space: nowrap;
+    }
+    .toast {
+      position: fixed;
+      bottom: 22px;
+      right: 22px;
+      background: #131c2e;
+      border: 1px solid var(--accent);
+      color: var(--text);
+      padding: 14px 18px;
+      border-radius: 12px;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.65);
+      font-size: 13px;
+      max-width: 390px;
+      z-index: 999;
+      display: none;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="brand-badge">TVA // WF</span>
+    <span>Aolon GTS3 Watchface Studio</span>
+    <span style="color:var(--muted);font-weight:400;font-size:12px;">390 × 450 AMOLED</span>
+  </div>
+
+  <div class="toolbar-group">
+    <label style="font-size:12px;color:var(--muted);">Proyek:</label>
+    <select id="savedProjectSelect" style="max-width:175px;">
+      <option value="">-- Pilih Proyek Tersimpan --</option>
+    </select>
+    <label style="font-size:12px;color:var(--muted);margin-left:4px;">Template:</label>
+    <select id="presetSelect" style="max-width:165px;">
+      <option value="tva">🟧 TVA — Sacred Timeline</option>
+      <option value="tva_miss">🕰️ TVA — Chrono Reticle</option>
+      <option value="casio">⌚ Casio F-91W LCD</option>
+      <option value="pipboy">🟩 Pip-Boy 3000</option>
+      <option value="blank">⬛ Kanvas Kosong</option>
+    </select>
+    <button id="btnLoadPreset" class="sm">Reset Template</button>
+  </div>
+
+  <div class="toolbar-group">
+    <span id="proxyStatusPill" class="status-pill">Proxy Siap</span>
+    <button id="btnSaveJson" title="Simpan perubahan ke proyek saat ini">💾 Simpan</button>
+    <button id="btnDupJson" title="Duplikat proyek ke nama baru agar yang lama aman">📑 Duplikat</button>
+    <button id="btnLoadJson" title="Import file proyek JSON dari komputer">📂</button>
+    <button id="btnDownloadBin" title="Download file .bin hasil compile">⬇️ .BIN</button>
+    <button id="btnCompile" class="primary">⚡ Compile &amp; Pasang ke Proxy</button>
+  </div>
+</header>
+
+<div class="workspace">
+  <!-- LEFT SIDEBAR: LAYERS & BACKGROUND -->
+  <aside class="sidebar">
+    <div class="panel-tabs">
+      <div class="panel-tab active" data-ltab="layers">Layer &amp; Widget</div>
+      <div class="panel-tab" data-ltab="bg">Layar &amp; Efek CRT</div>
+    </div>
+
+    <!-- Tab: Layers -->
+    <div class="panel-scroll" id="ltab-layers">
+      <div class="section-title">Tambah Widget Sensor Jam</div>
+      <div style="display:flex; gap:6px; margin-bottom:12px;">
+        <select id="addWidgetSelect" style="flex:1;">
+          <option value="hour">🕒 Jam Utama (HH)</option>
+          <option value="minute">🕒 Menit Utama (MM)</option>
+          <option value="month">📅 Bulan (MM)</option>
+          <option value="day">📅 Tanggal (DD)</option>
+          <option value="weekday">📆 Hari (SUN..SAT)</option>
+          <option value="batt">🔋 Bar Baterai (5-Level)</option>
+          <option value="step_prog">📈 Bar Progres Langkah (11-Level)</option>
+          <option value="cal_prog">🔥 Bar Progres Kalori (11-Level)</option>
+          <option value="steps">👟 Angka Langkah (STEPS)</option>
+          <option value="bpm">❤️ Detak Jantung (BPM)</option>
+          <option value="kcal">🔥 Kalori (KCAL)</option>
+          <option value="temp">🌡️ Suhu Udara (TEMP)</option>
+          <option value="temp_unit">🌡️ Satuan Suhu (°C/°F)</option>
+        </select>
+        <button id="btnAddWidget">+ Tambah</button>
+      </div>
+
+      <div class="section-title">Tambah Elemen Desain / Gambar</div>
+      <div class="add-grid">
+        <button id="btnAddMissMinutes" style="grid-column: span 2; border-color: var(--accent); color: #ffd280;">🕰️ + Tambah Karakter Miss Minutes</button>
+        <button id="btnAddText">+ Teks / Label</button>
+        <button id="btnAddBox">+ Kotak / Badge</button>
+        <button id="btnAddLine">+ Garis / Sekat</button>
+        <button id="btnAddWave">+ Sacred Timeline</button>
+        <button id="btnUploadImg">+ Gambar PNG/JPG</button>
+        <button id="btnUploadFont">+ Font .TTF/.OTF</button>
+      </div>
+      <input type="file" id="fileImgInput" accept="image/*" style="display:none;" />
+      <input type="file" id="fileFontInput" accept=".ttf,.otf,.woff,.woff2" style="display:none;" />
+      <input type="file" id="fileProjectInput" accept=".json" style="display:none;" />
+
+      <div class="section-title">
+        <span>Daftar Layer (Klik untuk Edit / Geser)</span>
+        <span id="layerCountLabel">0</span>
+      </div>
+      <div class="layer-list" id="layerList"></div>
+    </div>
+
+    <!-- Tab: Background & CRT Effects -->
+    <div class="panel-scroll" id="ltab-bg" style="display:none;">
+      <div class="section-title">Warna &amp; Cahaya Tabung CRT</div>
+      <div class="field-row">
+        <div class="field">
+          <label>Warna Dasar Tepi</label>
+          <input type="color" id="bgOuterColor" />
+        </div>
+        <div class="field">
+          <label>Cahaya Tengah (Glow)</label>
+          <input type="color" id="bgInnerColor" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label><span>Garis Scanline CRT Retro</span><span id="lblScanline">25%</span></label>
+        <input type="range" id="bgScanline" min="0" max="80" value="25" />
+      </div>
+
+      <div class="field">
+        <label><span>Grid Terminal Birokrasi</span><span id="lblGrid">18%</span></label>
+        <input type="range" id="bgGrid" min="0" max="60" value="18" />
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Warna Grid</label>
+          <input type="color" id="bgGridColor" />
+        </div>
+        <div class="field">
+          <label>Ukuran Kotak Grid</label>
+          <input type="number" id="bgGridSize" min="12" max="80" value="30" />
+        </div>
+      </div>
+
+      <div class="section-title">Bingkai Bezel Dalam</div>
+      <div class="field-row">
+        <div class="field">
+          <label>Tampilkan Bezel</label>
+          <select id="bgBezelOn">
+            <option value="1">Aktif</option>
+            <option value="0">Nonaktif</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Warna Garis Bezel</label>
+          <input type="color" id="bgBezelColor" />
+        </div>
+      </div>
+      <div class="field">
+        <label><span>Ketebalan Bezel</span><span id="lblBezelWidth">2.5px</span></label>
+        <input type="range" id="bgBezelWidth" min="1" max="8" step="0.5" value="2.5" />
+      </div>
+    </div>
+  </aside>
+
+  <!-- CENTER INTERACTIVE WATCH STAGE -->
+  <main class="stage">
+    <div class="stage-controls">
+      <label><input type="checkbox" id="chkGuides" checked /> Garis Bantu &amp; Seleksi</label>
+      <span style="color:var(--border);">|</span>
+      <label>Zoom:
+        <select id="zoomSelect" style="padding:2px 6px;">
+          <option value="1">100% (1:1 Piksel)</option>
+          <option value="1.15" selected>115%</option>
+          <option value="1.3">130%</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="watch-body" id="watchBodyWrap" style="transform: scale(1.15);">
+      <div class="watch-crown"></div>
+      <div class="screen-wrap">
+        <canvas id="editorCanvas" width="390" height="450"></canvas>
+      </div>
+    </div>
+
+    <div class="coord-hud" id="coordHud">
+      Klik elemen di layar jam untuk menggeser posisi bebas • Panah Keyboard = geser 1px
+    </div>
+  </main>
+
+  <!-- RIGHT SIDEBAR: INSPECTOR & SENSOR SIMULATOR -->
+  <aside class="sidebar right">
+    <div class="panel-tabs">
+      <div class="panel-tab active" data-rtab="inspector">Properti Elemen</div>
+      <div class="panel-tab" data-rtab="sim">Simulator Sensor</div>
+    </div>
+
+    <div class="panel-scroll" id="rtab-inspector">
+      <div id="inspectorEmpty" style="color:var(--muted);font-size:13px;text-align:center;padding:36px 12px;">
+        Pilih salah satu layer atau klik langsung elemen di layar jam untuk mengatur tampilan, font, warna, glow, dan posisinya.
+      </div>
+      <div id="inspectorForm" style="display:none;"></div>
+    </div>
+
+    <div class="panel-scroll" id="rtab-sim" style="display:none;">
+      <div class="section-title">Uji Angka Live di Preview</div>
+      <div class="field-row">
+        <div class="field"><label>Jam (HH)</label><input type="text" id="simHour" maxlength="2" value="10" /></div>
+        <div class="field"><label>Menit (MM)</label><input type="text" id="simMin" maxlength="2" value="08" /></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Bulan (MM)</label><input type="text" id="simMonth" maxlength="2" value="11" /></div>
+        <div class="field"><label>Tanggal (DD)</label><input type="text" id="simDay" maxlength="2" value="05" /></div>
+      </div>
+      <div class="field">
+        <label>Hari (0=SUN .. 6=SAT)</label>
+        <select id="simWeek">
+          <option value="0">0 — Minggu (SUN)</option>
+          <option value="1" selected>1 — Senin (MON)</option>
+          <option value="2">2 — Selasa (TUE)</option>
+          <option value="3">3 — Rabu (WED)</option>
+          <option value="4">4 — Kamis (THU)</option>
+          <option value="5">5 — Jumat (FRI)</option>
+          <option value="6">6 — Sabtu (SAT)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label><span>Level Baterai (0..4)</span><span id="lblSimBatt">4 (Full)</span></label>
+        <input type="range" id="simBatt" min="0" max="4" value="4" />
+      </div>
+      <div class="field">
+        <label><span>Progres Bar Langkah/Kalori (0..10)</span><span id="lblSimProg">7 (70%)</span></label>
+        <input type="range" id="simProg" min="0" max="10" value="7" />
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Langkah (Steps)</label><input type="text" id="simSteps" maxlength="5" value="7840" /></div>
+        <div class="field"><label>Jantung (BPM)</label><input type="text" id="simBpm" maxlength="3" value="76" /></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Kalori (KCAL)</label><input type="text" id="simKcal" maxlength="4" value="342" /></div>
+        <div class="field"><label>Suhu (TEMP)</label><input type="text" id="simTemp" maxlength="3" value="27" /></div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div class="toast" id="toastBox"></div>
+
+<script>
+const W = 390, H = 450;
+const canvas = document.getElementById('editorCanvas');
+const ctx = canvas.getContext('2d');
+
+let hwMaskImg = null;
+const loadedImages = new Map(); // dataUrl -> HTMLImageElement
+const customFonts = []; // { name, family }
+
+const WIDGET_CATALOG = {
+  hour:      { label: 'Jam (HH)',        typeHex: '04 05', frames: 14, kind: 'number', sampleKey: 'hour' },
+  minute:    { label: 'Menit (MM)',      typeHex: '04 06', frames: 14, kind: 'number', sampleKey: 'min' },
+  month:     { label: 'Bulan (MM)',      typeHex: '04 02', frames: 14, kind: 'number', sampleKey: 'month' },
+  day:       { label: 'Tanggal (DD)',    typeHex: '04 03', frames: 14, kind: 'number', sampleKey: 'day' },
+  steps:     { label: 'Langkah (STEPS)', typeHex: '04 41', frames: 14, kind: 'number', sampleKey: 'steps' },
+  bpm:       { label: 'Detak BPM',       typeHex: '04 42', frames: 14, kind: 'number', sampleKey: 'bpm' },
+  kcal:      { label: 'Kalori (KCAL)',   typeHex: '04 40', frames: 14, kind: 'number', sampleKey: 'kcal' },
+  temp:      { label: 'Suhu (TEMP)',     typeHex: '04 47', frames: 14, kind: 'number', sampleKey: 'temp' },
+  weekday:   { label: 'Hari (7-Frame)',  typeHex: '02 25', frames: 7,  kind: 'weekday' },
+  temp_unit: { label: 'Satuan °C/°F',    typeHex: '02 27', frames: 2,  kind: 'temp_unit' },
+  batt:      { label: 'Bar Baterai',     typeHex: '02 1d', frames: 5,  kind: 'batt' },
+  step_prog: { label: 'Progres Langkah', typeHex: '02 1c', frames: 11, kind: 'prog' },
+  cal_prog:  { label: 'Progres Kalori',  typeHex: '02 1b', frames: 11, kind: 'prog' },
+};
+
+const FONT_OPTIONS = [
+  { value: 'seg7', label: '7-Segment Retro Digital' },
+  { value: '"Arial Narrow", "Helvetica Neue", Impact, sans-serif', label: 'TVA Industrial Condensed' },
+  { value: 'Impact, "Arial Black", sans-serif', label: 'TVA Heavy Stamp' },
+  { value: '"SF Mono", Menlo, Monaco, "Courier New", monospace', label: 'CRT Terminal Monospace' },
+  { value: 'Futura, "Trebuchet MS", sans-serif', label: '1970s Retro Geometric' },
+  { value: 'Georgia, "Times New Roman", serif', label: 'Bureaucratic Serif' },
+];
+
+const simState = {
+  hour: '10', min: '08', month: '11', day: '05',
+  week: 1, batt: 4, prog: 7,
+  steps: '7840', bpm: '76', kcal: '342', temp: '27', tempUnit: 0
+};
+
+let project = null;
+let selectedId = null;
+let uidCounter = 1;
+function nextId(prefix = 'el') { return `${prefix}_${uidCounter++}_${Math.random().toString(36).slice(2,5)}`; }
+
+/* ============== 7-SEGMENT VECTOR RENDERER ============== */
+const SEG7_MAP = {
+  '0': 'ABCDEF', '1': 'BC', '2': 'ABGED', '3': 'ABGCD', '4': 'FGBC',
+  '5': 'AFGCD', '6': 'AFGCDE', '7': 'ABC', '8': 'ABCDEFG', '9': 'ABCDFG',
+  '-': 'G', ' ': ''
+};
+
+function draw7SegGlyph(gctx, sym, boxW, boxH, color, slant = 0.06, glowColor = null, glowBlur = 0, thickRatio = 0.16) {
+  const padX = Math.max(2, boxW * 0.09);
+  const padY = Math.max(2, boxH * 0.07);
+  const w = boxW - padX * 2;
+  const h = boxH - padY * 2;
+  const x0 = padX, y0 = padY;
+  const t = Math.max(2.2, Math.min(w * 0.34, w * thickRatio * 1.45));
+  const ht = t * 0.5;
+  const g = Math.max(0.9, t * 0.14);
+  const ym = y0 + h * 0.5;
+
+  const sk = (px, py) => [px + (ym - py) * slant, py];
+  const segs = {
+    A: [sk(x0+g+ht, y0), sk(x0+w-g-ht, y0), sk(x0+w-g-t, y0+t), sk(x0+g+t, y0+t)],
+    D: [sk(x0+g+t, y0+h-t), sk(x0+w-g-t, y0+h-t), sk(x0+w-g-ht, y0+h), sk(x0+g+ht, y0+h)],
+    G: [sk(x0+g+ht, ym), sk(x0+g+t, ym-ht), sk(x0+w-g-t, ym-ht), sk(x0+w-g-ht, ym), sk(x0+w-g-t, ym+ht), sk(x0+g+t, ym+ht)],
+    F: [sk(x0, y0+g+ht), sk(x0+t, y0+g+t), sk(x0+t, ym-g-ht), sk(x0+ht, ym-g), sk(x0, ym-g-ht*0.5)],
+    E: [sk(x0+ht, ym+g), sk(x0+t, ym+g+ht), sk(x0+t, y0+h-g-t), sk(x0, y0+h-g-ht), sk(x0, ym+g+ht*0.5)],
+    B: [sk(x0+w, y0+g+ht), sk(x0+w, ym-g-ht*0.5), sk(x0+w-ht, ym-g), sk(x0+w-t, ym-g-ht), sk(x0+w-t, y0+g+t)],
+    C: [sk(x0+w-ht, ym+g), sk(x0+w, ym+g+ht*0.5), sk(x0+w, y0+h-g-ht), sk(x0+w-t, y0+h-g-t), sk(x0+w-t, ym+g+ht)],
+  };
+
+  gctx.save();
+  if (glowBlur > 0 && glowColor) {
+    gctx.shadowColor = glowColor;
+    gctx.shadowBlur = glowBlur;
+  }
+  gctx.fillStyle = color;
+
+  const poly = (pts) => {
+    gctx.beginPath();
+    gctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length; i++) gctx.lineTo(pts[i][0], pts[i][1]);
+    gctx.closePath();
+    gctx.fill();
+  };
+
+  if (sym in SEG7_MAP) {
+    for (const ch of SEG7_MAP[sym]) poly(segs[ch]);
+  } else if (sym === '.') {
+    const r = Math.max(2, t * 0.55);
+    gctx.fillRect(boxW * 0.5 - r * 0.5, y0 + h - r, r, r);
+  } else if (sym === ':') {
+    const r = Math.max(2, t * 0.6);
+    gctx.fillRect(boxW * 0.5 - r * 0.5, y0 + h * 0.3 - r * 0.5, r, r);
+    gctx.fillRect(boxW * 0.5 - r * 0.5, y0 + h * 0.7 - r * 0.5, r, r);
+  } else if (sym === '/') {
+    poly([[x0+w*0.68, y0+h*0.12], [x0+w*0.84, y0+h*0.12], [x0+w*0.32, y0+h*0.88], [x0+w*0.16, y0+h*0.88]]);
+  }
+  gctx.restore();
+}
+
+/* ============== PRESET TEMPLATES ============== */
+function createPreset(name) {
+  uidCounter = 1;
+  if (name === 'tva') {
+    return {
+      name: 'tva_sacred_timeline',
+      bg: {
+        outerColor: '#100702',
+        innerColor: '#2e1605',
+        scanline: 28,
+        grid: 20,
+        gridColor: '#ff8c1a',
+        gridSize: 30,
+        bezelOn: true,
+        bezelColor: '#d97706',
+        bezelWidth: 2.5,
+      },
+      staticLayers: [
+        // TVA 3-Box Stamp Logo
+        { id: nextId('st'), type: 'tva_logo', name: 'Logo Stamp [TVA]', x: 84, y: 50, w: 94, h: 34, color: '#ff951c', textColor: '#120802', glowBlur: 6 },
+        { id: nextId('st'), type: 'text', name: 'Header: TIME VARIANCE', text: 'TIME VARIANCE', x: 214, y: 42, fontSize: 13, fontFamily: '"Arial Narrow", "Helvetica Neue", Impact, sans-serif', bold: true, italic: false, letterSpacing: 2.2, color: '#ffb347', align: 'center', glowColor: '#ff7b00', glowBlur: 4 },
+        { id: nextId('st'), type: 'text', name: 'Header: AUTHORITY', text: 'AUTHORITY // TEMPAD v4.2', x: 226, y: 58, fontSize: 10, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, italic: false, letterSpacing: 1, color: '#cc6b14', align: 'center', glowColor: '#ff7b00', glowBlur: 0 },
+        { id: nextId('st'), type: 'line', name: 'Garis Atas', x: 195, y: 76, w: 326, h: 2, color: '#b45309', dashed: false },
+
+        // Upper telemetry labels
+        { id: nextId('st'), type: 'text', name: 'Label TEMPUS PWR', text: 'TEMPUS PWR', x: 82, y: 92, fontSize: 9.5, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, letterSpacing: 1, color: '#d97706', align: 'center', glowColor: '#ff8c1a', glowBlur: 0 },
+        { id: nextId('st'), type: 'text', name: 'Label CYCLE', text: 'CYCLE', x: 195, y: 92, fontSize: 9.5, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, letterSpacing: 1.2, color: '#d97706', align: 'center', glowColor: '#ff8c1a', glowBlur: 0 },
+        { id: nextId('st'), type: 'text', name: 'Label TIMELINE', text: 'DATE', x: 304, y: 92, fontSize: 9.5, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, letterSpacing: 1.2, color: '#d97706', align: 'center', glowColor: '#ff8c1a', glowBlur: 0 },
+        { id: nextId('st'), type: 'box', name: 'Kotak Hari CYCLE', x: 195, y: 116, w: 68, h: 28, radius: 4, fillColor: '#1f0e03', fillAlpha: 0.75, strokeColor: '#d97706', strokeWidth: 1.5, brackets: true },
+        { id: nextId('st'), type: 'text', name: 'Pemisah Tanggal (.)', text: '-', x: 304, y: 117, fontSize: 18, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, letterSpacing: 0, color: '#ff951c', align: 'center', glowColor: '#ff7b00', glowBlur: 4 },
+
+        // Main Chrono Frame
+        { id: nextId('st'), type: 'box', name: 'Frame Chrono Utama', x: 195, y: 196, w: 332, h: 112, radius: 8, fillColor: '#180b02', fillAlpha: 0.65, strokeColor: '#9a480c', strokeWidth: 1.5, brackets: true },
+        { id: nextId('st'), type: 'text', name: 'Titik Dua (:)', text: ':', x: 195, y: 193, fontSize: 68, fontFamily: '"Arial Narrow", "Helvetica Neue", Impact, sans-serif', bold: true, letterSpacing: 0, color: '#ff9f2e', align: 'center', glowColor: '#ff6a00', glowBlur: 8 },
+
+        // Sacred Timeline Monitor Window
+        { id: nextId('st'), type: 'box', name: 'Layar Sacred Timeline', x: 195, y: 290, w: 332, h: 58, radius: 6, fillColor: '#120802', fillAlpha: 0.85, strokeColor: '#b45309', strokeWidth: 1.5, brackets: false },
+        { id: nextId('st'), type: 'tva_wave', name: 'Gelombang Sacred Timeline', x: 195, y: 286, w: 320, h: 44, color: '#ff951c', branchColor: '#ef4444', glowBlur: 5 },
+        { id: nextId('st'), type: 'text', name: 'Label SACRED TIMELINE', text: 'SACRED TIMELINE // NEXUS MONITOR', x: 195, y: 269, fontSize: 8.5, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, letterSpacing: 1.2, color: '#fbbf24', align: 'center', glowColor: '#ff7b00', glowBlur: 0 },
+
+        // Bottom 3 Variant Telemetry Cells
+        { id: nextId('st'), type: 'box', name: 'Kotak STEPS', x: 86, y: 360, w: 104, h: 56, radius: 5, fillColor: '#1a0c03', fillAlpha: 0.75, strokeColor: '#9a480c', strokeWidth: 1.3, brackets: true },
+        { id: nextId('st'), type: 'box', name: 'Kotak VITALS BPM', x: 195, y: 360, w: 100, h: 56, radius: 5, fillColor: '#1a0c03', fillAlpha: 0.75, strokeColor: '#9a480c', strokeWidth: 1.3, brackets: true },
+        { id: nextId('st'), type: 'box', name: 'Kotak TEMPAD KCAL', x: 304, y: 360, w: 104, h: 56, radius: 5, fillColor: '#1a0c03', fillAlpha: 0.75, strokeColor: '#9a480c', strokeWidth: 1.3, brackets: true },
+
+        { id: nextId('st'), type: 'text', name: 'Label STEPS', text: 'VARIANT STEPS', x: 86, y: 343, fontSize: 8.5, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, letterSpacing: 0.6, color: '#d97706', align: 'center', glowBlur: 0 },
+        { id: nextId('st'), type: 'text', name: 'Label BPM', text: '♥ VITALS BPM', x: 195, y: 343, fontSize: 8.5, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, letterSpacing: 0.6, color: '#ef4444', align: 'center', glowBlur: 0 },
+        { id: nextId('st'), type: 'text', name: 'Label KCAL', text: 'TEMPAD KCAL', x: 304, y: 343, fontSize: 8.5, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, letterSpacing: 0.6, color: '#d97706', align: 'center', glowBlur: 0 },
+
+        // Footer Motto
+        { id: nextId('st'), type: 'text', name: 'Motto TVA', text: 'FOR ALL TIME. ALWAYS.', x: 195, y: 412, fontSize: 11.5, fontFamily: 'Futura, "Trebuchet MS", sans-serif', bold: true, letterSpacing: 2.6, color: '#ffb347', align: 'center', glowColor: '#ff7b00', glowBlur: 5 },
+      ],
+      widgets: [
+        { id: nextId('wg'), wtype: 'batt', x: 82, y: 116, w: 84, h: 24, barStyle: 'tva-blocks', color: '#ff951c', dimColor: 'rgba(255,149,28,0.16)', glowColor: '#ff6a00', glowBlur: 4 },
+        { id: nextId('wg'), wtype: 'weekday', x: 195, y: 116, w: 62, h: 24, labels: 'SUN,MON,TUE,WED,THU,FRI,SAT', fontSize: 15, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, color: '#ffd280', glowColor: '#ff8c1a', glowBlur: 3 },
+        { id: nextId('wg'), wtype: 'month', x: 278, y: 116, cellW: 16, cellH: 28, fontSize: 22, fontFamily: 'seg7', bold: true, slant: 0.04, alignMode: 1, color: '#ff9f2e', glowColor: '#ff6a00', glowBlur: 3, ghostOn: false },
+        { id: nextId('wg'), wtype: 'day', x: 330, y: 116, cellW: 16, cellH: 28, fontSize: 22, fontFamily: 'seg7', bold: true, slant: 0.04, alignMode: 1, color: '#ff9f2e', glowColor: '#ff6a00', glowBlur: 3, ghostOn: false },
+
+        { id: nextId('wg'), wtype: 'hour', x: 114, y: 197, cellW: 64, cellH: 94, fontSize: 82, fontFamily: 'seg7', bold: true, slant: 0.05, alignMode: 1, color: '#ffaa33', glowColor: '#ff6a00', glowBlur: 6, ghostOn: true, ghostColor: 'rgba(255,149,28,0.09)' },
+        { id: nextId('wg'), wtype: 'minute', x: 276, y: 197, cellW: 64, cellH: 94, fontSize: 82, fontFamily: 'seg7', bold: true, slant: 0.05, alignMode: 1, color: '#ffaa33', glowColor: '#ff6a00', glowBlur: 6, ghostOn: true, ghostColor: 'rgba(255,149,28,0.09)' },
+
+        { id: nextId('wg'), wtype: 'step_prog', x: 195, y: 309, w: 308, h: 12, barStyle: 'tva-timeline', color: '#ffaa33', dimColor: 'rgba(255,149,28,0.16)', glowColor: '#ff6a00', glowBlur: 4 },
+
+        { id: nextId('wg'), wtype: 'steps', x: 86, y: 369, cellW: 16, cellH: 28, fontSize: 23, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, slant: 0, alignMode: 1, color: '#ffd280', glowColor: '#ff8c1a', glowBlur: 3, ghostOn: false },
+        { id: nextId('wg'), wtype: 'bpm', x: 195, y: 369, cellW: 16, cellH: 28, fontSize: 23, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, slant: 0, alignMode: 1, color: '#ff6b57', glowColor: '#ef4444', glowBlur: 4, ghostOn: false },
+        { id: nextId('wg'), wtype: 'kcal', x: 304, y: 369, cellW: 16, cellH: 28, fontSize: 23, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, slant: 0, alignMode: 1, color: '#ffd280', glowColor: '#ff8c1a', glowBlur: 3, ghostOn: false },
+      ]
+    };
+  }
+
+  if (name === 'tva_miss') {
+    return {
+      name: 'tva_chrono_reticle',
+      bg: {
+        outerColor: '#0d0602', innerColor: '#361904',
+        scanline: 32, grid: 28, gridColor: '#f59e0b', gridSize: 26,
+        bezelOn: true, bezelColor: '#f59e0b', bezelWidth: 3,
+      },
+      staticLayers: [
+        { id: nextId('st'), type: 'reticle', name: 'Chrono Reticle Dial', x: 195, y: 215, w: 280, h: 280, color: '#d97706', glowBlur: 4 },
+        { id: nextId('st'), type: 'tva_logo', name: 'Badge [TVA]', x: 195, y: 46, w: 88, h: 30, color: '#ff951c', textColor: '#120802', glowBlur: 6 },
+        { id: nextId('st'), type: 'text', name: 'Subjudul VARIANT', text: 'TEMPORAL AURA // ACTIVE', x: 195, y: 78, fontSize: 10, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, letterSpacing: 1.5, color: '#fbbf24', align: 'center', glowBlur: 2 },
+        { id: nextId('st'), type: 'text', name: 'Colon :', text: ':', x: 195, y: 206, fontSize: 74, fontFamily: 'Impact, "Arial Black", sans-serif', bold: true, letterSpacing: 0, color: '#ffb347', align: 'center', glowColor: '#ff6a00', glowBlur: 10 },
+        { id: nextId('st'), type: 'tva_wave', name: 'Sacred Timeline Bawah', x: 195, y: 332, w: 310, h: 42, color: '#ff951c', branchColor: '#ef4444', glowBlur: 5 },
+        { id: nextId('st'), type: 'text', name: 'Motto', text: 'FOR ALL TIME. ALWAYS.', x: 195, y: 416, fontSize: 11, fontFamily: 'Futura, "Trebuchet MS", sans-serif', bold: true, letterSpacing: 2.5, color: '#ffd280', align: 'center', glowColor: '#ff7b00', glowBlur: 4 },
+      ],
+      widgets: [
+        { id: nextId('wg'), wtype: 'weekday', x: 132, y: 122, w: 64, h: 24, labels: 'SUN,MON,TUE,WED,THU,FRI,SAT', fontSize: 15, fontFamily: 'Futura, "Trebuchet MS", sans-serif', bold: true, color: '#ffb347', glowColor: '#ff7b00', glowBlur: 3 },
+        { id: nextId('wg'), wtype: 'month', x: 230, y: 122, cellW: 15, cellH: 24, fontSize: 19, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, alignMode: 1, color: '#ffb347', glowColor: '#ff7b00', glowBlur: 3 },
+        { id: nextId('wg'), wtype: 'day', x: 272, y: 122, cellW: 15, cellH: 24, fontSize: 19, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, alignMode: 1, color: '#ffb347', glowColor: '#ff7b00', glowBlur: 3 },
+        { id: nextId('wg'), wtype: 'hour', x: 112, y: 212, cellW: 62, cellH: 96, fontSize: 84, fontFamily: '"Arial Narrow", "Helvetica Neue", Impact, sans-serif', bold: true, alignMode: 1, color: '#ffd280', glowColor: '#ff6a00', glowBlur: 9 },
+        { id: nextId('wg'), wtype: 'minute', x: 278, y: 212, cellW: 62, cellH: 96, fontSize: 84, fontFamily: '"Arial Narrow", "Helvetica Neue", Impact, sans-serif', bold: true, alignMode: 1, color: '#ffd280', glowColor: '#ff6a00', glowBlur: 9 },
+        { id: nextId('wg'), wtype: 'batt', x: 195, y: 282, w: 120, h: 16, barStyle: 'tva-blocks', color: '#ff951c', dimColor: 'rgba(255,149,28,0.18)', glowColor: '#ff6a00', glowBlur: 4 },
+        { id: nextId('wg'), wtype: 'steps', x: 105, y: 382, cellW: 15, cellH: 26, fontSize: 20, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, alignMode: 1, color: '#ffb347', glowColor: '#ff7b00', glowBlur: 3 },
+        { id: nextId('wg'), wtype: 'bpm', x: 285, y: 382, cellW: 15, cellH: 26, fontSize: 20, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, alignMode: 1, color: '#ff6b57', glowColor: '#ef4444', glowBlur: 3 },
+      ]
+    };
+  }
+
+  if (name === 'pipboy') {
+    return {
+      name: 'pipboy_3000',
+      bg: {
+        outerColor: '#041207', innerColor: '#0b2e13',
+        scanline: 35, grid: 22, gridColor: '#22c55e', gridSize: 32,
+        bezelOn: true, bezelColor: '#22c55e', bezelWidth: 2.5,
+      },
+      staticLayers: [
+        { id: nextId('st'), type: 'text', name: 'ROBCO Header', text: 'ROBCO INDUSTRIES // PIP-BOY 3000', x: 195, y: 42, fontSize: 11, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, letterSpacing: 1, color: '#4ade80', align: 'center', glowColor: '#22c55e', glowBlur: 4 },
+        { id: nextId('st'), type: 'line', name: 'Top Line', x: 195, y: 60, w: 320, h: 2, color: '#22c55e', dashed: false },
+        { id: nextId('st'), type: 'box', name: 'Time Frame', x: 195, y: 195, w: 326, h: 116, radius: 6, fillColor: '#051a09', fillAlpha: 0.7, strokeColor: '#22c55e', strokeWidth: 1.6, brackets: true },
+        { id: nextId('st'), type: 'text', name: 'Colon :', text: ':', x: 195, y: 192, fontSize: 68, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, color: '#4ade80', align: 'center', glowColor: '#22c55e', glowBlur: 8 },
+        { id: nextId('st'), type: 'text', name: 'Footer STAT', text: 'STAT   INV   DATA   MAP   RADIO', x: 195, y: 412, fontSize: 11, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, letterSpacing: 1.4, color: '#4ade80', align: 'center', glowColor: '#22c55e', glowBlur: 4 },
+      ],
+      widgets: [
+        { id: nextId('wg'), wtype: 'batt', x: 90, y: 98, w: 86, h: 22, barStyle: 'tva-blocks', color: '#4ade80', dimColor: 'rgba(74,222,128,0.16)', glowColor: '#22c55e', glowBlur: 4 },
+        { id: nextId('wg'), wtype: 'weekday', x: 210, y: 98, w: 64, h: 24, labels: 'SUN,MON,TUE,WED,THU,FRI,SAT', fontSize: 15, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, color: '#4ade80', glowColor: '#22c55e', glowBlur: 3 },
+        { id: nextId('wg'), wtype: 'day', x: 305, y: 98, cellW: 16, cellH: 26, fontSize: 20, fontFamily: 'seg7', alignMode: 1, color: '#4ade80', glowColor: '#22c55e', glowBlur: 3 },
+        { id: nextId('wg'), wtype: 'hour', x: 114, y: 196, cellW: 62, cellH: 92, fontSize: 80, fontFamily: 'seg7', slant: 0.05, alignMode: 1, color: '#4ade80', glowColor: '#22c55e', glowBlur: 7, ghostOn: true, ghostColor: 'rgba(74,222,128,0.08)' },
+        { id: nextId('wg'), wtype: 'minute', x: 276, y: 196, cellW: 62, cellH: 92, fontSize: 80, fontFamily: 'seg7', slant: 0.05, alignMode: 1, color: '#4ade80', glowColor: '#22c55e', glowBlur: 7, ghostOn: true, ghostColor: 'rgba(74,222,128,0.08)' },
+        { id: nextId('wg'), wtype: 'step_prog', x: 195, y: 290, w: 308, h: 14, barStyle: 'tva-timeline', color: '#4ade80', dimColor: 'rgba(74,222,128,0.16)', glowColor: '#22c55e', glowBlur: 4 },
+        { id: nextId('wg'), wtype: 'steps', x: 105, y: 355, cellW: 16, cellH: 28, fontSize: 22, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, alignMode: 1, color: '#4ade80', glowColor: '#22c55e', glowBlur: 3 },
+        { id: nextId('wg'), wtype: 'bpm', x: 285, y: 355, cellW: 16, cellH: 28, fontSize: 22, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, alignMode: 1, color: '#4ade80', glowColor: '#22c55e', glowBlur: 3 },
+      ]
+    };
+  }
+
+  if (name === 'casio') {
+    return {
+      name: 'casio_retro_studio',
+      bg: {
+        outerColor: '#161a22', innerColor: '#1e2430',
+        scanline: 0, grid: 0, gridColor: '#1d62c4', gridSize: 30,
+        bezelOn: true, bezelColor: '#1d62c4', bezelWidth: 3,
+      },
+      staticLayers: [
+        { id: nextId('st'), type: 'text', name: 'CASIO Logo', text: 'CASIO', x: 102, y: 46, fontSize: 26, fontFamily: 'Impact, "Arial Black", sans-serif', bold: true, italic: true, letterSpacing: 2, color: '#f1f5f9', align: 'center', glowBlur: 0 },
+        { id: nextId('st'), type: 'text', name: 'F-91W', text: 'F-91W', x: 296, y: 48, fontSize: 16, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, color: '#eab308', align: 'center', glowBlur: 0 },
+        { id: nextId('st'), type: 'box', name: 'Kaca LCD Hijau Jadul', x: 195, y: 232, w: 334, h: 274, radius: 18, fillColor: '#a8b796', fillAlpha: 1, strokeColor: '#0f1319', strokeWidth: 4, brackets: false },
+        { id: nextId('st'), type: 'text', name: 'Titik Dua :', text: ':', x: 195, y: 224, fontSize: 64, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, color: '#171f14', align: 'center', glowBlur: 0 },
+        { id: nextId('st'), type: 'text', name: 'WATER RESIST', text: 'WATER  [WR]  RESIST', x: 195, y: 404, fontSize: 15, fontFamily: 'Impact, "Arial Black", sans-serif', bold: true, letterSpacing: 2, color: '#eab308', align: 'center', glowBlur: 0 },
+      ],
+      widgets: [
+        { id: nextId('wg'), wtype: 'batt', x: 84, y: 132, w: 76, h: 24, barStyle: 'retro-batt', color: '#171f14', dimColor: 'rgba(23,31,20,0.14)', glowBlur: 0 },
+        { id: nextId('wg'), wtype: 'weekday', x: 195, y: 132, w: 62, h: 26, labels: 'SU,MO,TU,WE,TH,FR,SA', fontSize: 18, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, color: '#171f14', glowBlur: 0 },
+        { id: nextId('wg'), wtype: 'month', x: 272, y: 132, cellW: 17, cellH: 28, fontSize: 22, fontFamily: 'seg7', slant: 0.06, alignMode: 1, color: '#171f14', ghostOn: true, ghostColor: 'rgba(23,31,20,0.09)' },
+        { id: nextId('wg'), wtype: 'day', x: 324, y: 132, cellW: 17, cellH: 28, fontSize: 22, fontFamily: 'seg7', slant: 0.06, alignMode: 1, color: '#171f14', ghostOn: true, ghostColor: 'rgba(23,31,20,0.09)' },
+        { id: nextId('wg'), wtype: 'hour', x: 112, y: 228, cellW: 64, cellH: 96, fontSize: 84, fontFamily: 'seg7', slant: 0.06, alignMode: 1, color: '#171f14', ghostOn: true, ghostColor: 'rgba(23,31,20,0.09)' },
+        { id: nextId('wg'), wtype: 'minute', x: 278, y: 228, cellW: 64, cellH: 96, fontSize: 84, fontFamily: 'seg7', slant: 0.06, alignMode: 1, color: '#171f14', ghostOn: true, ghostColor: 'rgba(23,31,20,0.09)' },
+        { id: nextId('wg'), wtype: 'step_prog', x: 195, y: 298, w: 300, h: 10, barStyle: 'skew-ticks', color: '#171f14', dimColor: 'rgba(23,31,20,0.14)', glowBlur: 0 },
+        { id: nextId('wg'), wtype: 'steps', x: 96, y: 340, cellW: 16, cellH: 28, fontSize: 22, fontFamily: 'seg7', slant: 0.05, alignMode: 1, color: '#171f14' },
+        { id: nextId('wg'), wtype: 'bpm', x: 195, y: 340, cellW: 16, cellH: 28, fontSize: 22, fontFamily: 'seg7', slant: 0.05, alignMode: 1, color: '#171f14' },
+        { id: nextId('wg'), wtype: 'kcal', x: 294, y: 340, cellW: 16, cellH: 28, fontSize: 22, fontFamily: 'seg7', slant: 0.05, alignMode: 1, color: '#171f14' },
+      ]
+    };
+  }
+
+  return {
+    name: 'custom_watchface',
+    bg: { outerColor: '#090b10', innerColor: '#161b26', scanline: 0, grid: 0, gridColor: '#38bdf8', gridSize: 30, bezelOn: true, bezelColor: '#38bdf8', bezelWidth: 2 },
+    staticLayers: [
+      { id: nextId('st'), type: 'text', name: 'Judul Custom', text: 'CUSTOM WATCH', x: 195, y: 60, fontSize: 16, fontFamily: 'Futura, "Trebuchet MS", sans-serif', bold: true, letterSpacing: 2, color: '#38bdf8', align: 'center', glowBlur: 4, glowColor: '#0284c7' },
+      { id: nextId('st'), type: 'text', name: 'Colon :', text: ':', x: 195, y: 220, fontSize: 64, fontFamily: 'Futura, "Trebuchet MS", sans-serif', bold: true, color: '#f8fafc', align: 'center', glowBlur: 0 },
+    ],
+    widgets: [
+      { id: nextId('wg'), wtype: 'hour', x: 116, y: 225, cellW: 60, cellH: 92, fontSize: 78, fontFamily: 'Futura, "Trebuchet MS", sans-serif', bold: true, alignMode: 1, color: '#f8fafc', glowBlur: 0 },
+      { id: nextId('wg'), wtype: 'minute', x: 274, y: 225, cellW: 60, cellH: 92, fontSize: 78, fontFamily: 'Futura, "Trebuchet MS", sans-serif', bold: true, alignMode: 1, color: '#38bdf8', glowBlur: 0 },
+    ]
+  };
+}
+
+/* ============== RENDERING ENGINE (SHARED PREVIEW & COMPILER) ============== */
+function roundRectPath(c, x, y, w, h, r) {
+  const rr = Math.min(r, w / 2, h / 2);
+  c.beginPath();
+  c.moveTo(x + rr, y);
+  c.arcTo(x + w, y, x + w, y + h, rr);
+  c.arcTo(x + w, y + h, x, y + h, rr);
+  c.arcTo(x, y + h, x, y, rr);
+  c.arcTo(x, y, x + w, y, rr);
+  c.closePath();
+}
+
+function drawSpacedText(c, text, x, y, spacing, align = 'center') {
+  const sp = Number(spacing || 0);
+  if (!sp) {
+    c.textAlign = align;
+    c.fillText(text, x, y);
+    return;
+  }
+  const chars = Array.from(text);
+  const widths = chars.map((ch) => c.measureText(ch).width);
+  const totalW = widths.reduce((a, b) => a + b, 0) + sp * Math.max(0, chars.length - 1);
+  let curX = align === 'center' ? x - totalW / 2 : align === 'right' ? x - totalW : x;
+  c.textAlign = 'left';
+  chars.forEach((ch, i) => {
+    c.fillText(ch, curX, y);
+    curX += widths[i] + sp;
+  });
+}
+
+function renderBackgroundToCanvas(targetCtx) {
+  const bg = project.bg;
+  targetCtx.clearRect(0, 0, W, H);
+
+  // 1. Radial CRT gradient
+  const grad = targetCtx.createRadialGradient(W / 2, H / 2, 18, W / 2, H / 2, 265);
+  grad.addColorStop(0, bg.innerColor);
+  grad.addColorStop(1, bg.outerColor);
+  targetCtx.fillStyle = grad;
+  targetCtx.fillRect(0, 0, W, H);
+
+  // 2. Bureaucratic CRT Grid
+  if (bg.grid > 0) {
+    targetCtx.save();
+    targetCtx.strokeStyle = bg.gridColor;
+    targetCtx.globalAlpha = bg.grid / 100;
+    targetCtx.lineWidth = 1;
+    const step = Math.max(12, Number(bg.gridSize || 30));
+    for (let x = (W / 2) % step; x < W; x += step) {
+      targetCtx.beginPath(); targetCtx.moveTo(x, 0); targetCtx.lineTo(x, H); targetCtx.stroke();
+    }
+    for (let y = (H / 2) % step; y < H; y += step) {
+      targetCtx.beginPath(); targetCtx.moveTo(0, y); targetCtx.lineTo(W, y); targetCtx.stroke();
+    }
+    targetCtx.restore();
+  }
+
+  // 3. Static Layers
+  for (const st of project.staticLayers) {
+    drawStaticLayer(targetCtx, st);
+  }
+
+  // 4. Ghost segments for 7-segment number widgets that have ghostOn!
+  for (const wg of project.widgets) {
+    const meta = WIDGET_CATALOG[wg.wtype];
+    if (meta && meta.kind === 'number' && wg.fontFamily === 'seg7' && wg.ghostOn) {
+      const digitsCount = (wg.wtype === 'hour' || wg.wtype === 'minute' || wg.wtype === 'month' || wg.wtype === 'day') ? 2 : 4;
+      const cw = Number(wg.cellW || 32), ch = Number(wg.cellH || 48);
+      const totalW = digitsCount * cw;
+      const startX = (Number(wg.alignMode) === 2) ? wg.x : wg.x - totalW / 2;
+      const topY = wg.y - ch / 2;
+      for (let i = 0; i < digitsCount; i++) {
+        const offCv = document.createElement('canvas');
+        offCv.width = cw; offCv.height = ch;
+        draw7SegGlyph(offCv.getContext('2d'), '8', cw, ch, wg.ghostColor || 'rgba(255,149,28,0.1)', Number(wg.slant || 0));
+        targetCtx.drawImage(offCv, Math.round(startX + i * cw), Math.round(topY));
+      }
+    }
+  }
+
+  // 5. CRT Horizontal Scanlines
+  if (bg.scanline > 0) {
+    targetCtx.save();
+    targetCtx.fillStyle = `rgba(0, 0, 0, ${(bg.scanline / 100) * 0.55})`;
+    for (let y = 0; y < H; y += 3) {
+      targetCtx.fillRect(0, y, W, 1);
+    }
+    targetCtx.restore();
+  }
+
+  // 6. Inner Bezel Ring
+  if (bg.bezelOn) {
+    targetCtx.save();
+    targetCtx.strokeStyle = bg.bezelColor;
+    targetCtx.lineWidth = Number(bg.bezelWidth || 2.5);
+    targetCtx.shadowColor = bg.bezelColor;
+    targetCtx.shadowBlur = 4;
+    roundRectPath(targetCtx, 10, 10, W - 20, H - 20, 64);
+    targetCtx.stroke();
+    targetCtx.restore();
+  }
+
+  // 7. Hardware GTS3 Rounded Corner Mask!
+  if (hwMaskImg) {
+    targetCtx.save();
+    targetCtx.globalCompositeOperation = 'destination-in';
+    targetCtx.drawImage(hwMaskImg, 0, 0, W, H);
+    targetCtx.restore();
+  }
+}
+
+function drawStaticLayer(c, st) {
+  c.save();
+  if (st.glowBlur > 0) {
+    c.shadowColor = st.glowColor || st.color || '#ff951c';
+    c.shadowBlur = Number(st.glowBlur);
+  }
+
+  if (st.type === 'text') {
+    const weight = st.bold ? '700' : '400';
+    const style = st.italic ? 'italic' : 'normal';
+    c.font = `${style} ${weight} ${st.fontSize || 16}px ${st.fontFamily || 'sans-serif'}`;
+    c.fillStyle = st.color || '#ffffff';
+    c.textBaseline = 'middle';
+    drawSpacedText(c, st.text || '', st.x, st.y, st.letterSpacing || 0, st.align || 'center');
+  } else if (st.type === 'box') {
+    const x0 = st.x - st.w / 2, y0 = st.y - st.h / 2;
+    if (st.fillAlpha > 0) {
+      c.save();
+      c.globalAlpha = Number(st.fillAlpha ?? 0.7);
+      c.fillStyle = st.fillColor || '#1a0c03';
+      roundRectPath(c, x0, y0, st.w, st.h, st.radius || 6);
+      c.fill();
+      c.restore();
+    }
+    if (st.strokeWidth > 0) {
+      c.strokeStyle = st.strokeColor || '#ff951c';
+      c.lineWidth = Number(st.strokeWidth);
+      roundRectPath(c, x0, y0, st.w, st.h, st.radius || 6);
+      c.stroke();
+    }
+    if (st.brackets) {
+      const bl = Math.min(10, st.w * 0.18, st.h * 0.28);
+      c.strokeStyle = st.strokeColor || '#ff951c';
+      c.lineWidth = Math.max(2, Number(st.strokeWidth || 1.5) + 0.8);
+      const corners = [
+        [[x0, y0+bl], [x0, y0], [x0+bl, y0]],
+        [[x0+st.w-bl, y0], [x0+st.w, y0], [x0+st.w, y0+bl]],
+        [[x0, y0+st.h-bl], [x0, y0+st.h], [x0+bl, y0+st.h]],
+        [[x0+st.w-bl, y0+st.h], [x0+st.w, y0+st.h], [x0+st.w, y0+st.h-bl]],
+      ];
+      for (const pts of corners) {
+        c.beginPath(); c.moveTo(pts[0][0], pts[0][1]); c.lineTo(pts[1][0], pts[1][1]); c.lineTo(pts[2][0], pts[2][1]); c.stroke();
+      }
+    }
+  } else if (st.type === 'line') {
+    c.strokeStyle = st.color || '#ff951c';
+    c.lineWidth = Math.max(1, Number(st.h || 2));
+    if (st.dashed) c.setLineDash([6, 4]);
+    c.beginPath();
+    c.moveTo(st.x - st.w / 2, st.y);
+    c.lineTo(st.x + st.w / 2, st.y);
+    c.stroke();
+  } else if (st.type === 'tva_logo') {
+    // Iconic 3-block [T][V][A] stamp!
+    const bw = (st.w - 8) / 3, bh = st.h;
+    const x0 = st.x - st.w / 2, y0 = st.y - bh / 2;
+    const letters = ['T', 'V', 'A'];
+    letters.forEach((ch, i) => {
+      const bx = x0 + i * (bw + 4);
+      c.fillStyle = st.color || '#ff951c';
+      roundRectPath(c, bx, y0, bw, bh, 3);
+      c.fill();
+      c.save();
+      c.shadowBlur = 0;
+      c.fillStyle = st.textColor || '#120802';
+      c.font = `900 ${Math.round(bh * 0.72)}px "Arial Narrow", Impact, sans-serif`;
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      c.fillText(ch, bx + bw / 2, y0 + bh / 2 + 1);
+      c.restore();
+    });
+  } else if (st.type === 'tva_wave') {
+    const x0 = st.x - st.w / 2, x1 = st.x + st.w / 2;
+    const cy = st.y;
+    const amp = st.h * 0.28;
+    // Red Nexus Threshold dashed lines
+    c.save();
+    c.shadowBlur = 0;
+    c.strokeStyle = st.branchColor || '#ef4444';
+    c.globalAlpha = 0.55;
+    c.lineWidth = 1;
+    c.setLineDash([4, 4]);
+    for (const dy of [-st.h * 0.42, st.h * 0.42]) {
+      c.beginPath(); c.moveTo(x0, cy + dy); c.lineTo(x1, cy + dy); c.stroke();
+    }
+    c.restore();
+
+    // Variant Nexus Branches
+    c.save();
+    c.strokeStyle = st.branchColor || '#ef4444';
+    c.lineWidth = 1.4;
+    const branches = [
+      [0.24, -1], [0.52, 1], [0.73, -1]
+    ];
+    for (const [pos, dir] of branches) {
+      const bx = x0 + st.w * pos;
+      const by = cy + Math.sin(pos * Math.PI * 4) * amp * 0.35;
+      c.beginPath();
+      c.moveTo(bx, by);
+      c.bezierCurveTo(bx + 18, by, bx + 28, by + dir * amp * 1.4, bx + 52, by + dir * amp * 1.55);
+      c.stroke();
+    }
+    c.restore();
+
+    // Main Glowing Sacred Timeline Strand
+    c.strokeStyle = st.color || '#ff951c';
+    c.lineWidth = 2.4;
+    c.beginPath();
+    for (let px = 0; px <= st.w; px += 3) {
+      const t = px / st.w;
+      const py = cy + Math.sin(t * Math.PI * 4) * amp * 0.35 + Math.sin(t * Math.PI * 9) * 1.8;
+      if (px === 0) c.moveTo(x0 + px, py);
+      else c.lineTo(x0 + px, py);
+    }
+    c.stroke();
+  } else if (st.type === 'reticle') {
+    const r = Math.min(st.w, st.h) / 2;
+    c.strokeStyle = st.color || '#d97706';
+    c.lineWidth = 1.4;
+    c.globalAlpha = 0.45;
+    c.beginPath(); c.arc(st.x, st.y, r, 0, Math.PI * 2); c.stroke();
+    c.beginPath(); c.arc(st.x, st.y, r * 0.78, 0, Math.PI * 2); c.stroke();
+    for (let a = 0; a < 360; a += 15) {
+      const rad = (a * Math.PI) / 180;
+      const rIn = a % 45 === 0 ? r - 10 : r - 5;
+      c.beginPath();
+      c.moveTo(st.x + Math.cos(rad) * rIn, st.y + Math.sin(rad) * rIn);
+      c.lineTo(st.x + Math.cos(rad) * r, st.y + Math.sin(rad) * r);
+      c.stroke();
+    }
+  } else if (st.type === 'image' && st.dataUrl) {
+    let img = loadedImages.get(st.dataUrl);
+    if (!img) {
+      img = new Image();
+      img.onload = () => renderEditor();
+      img.src = st.dataUrl;
+      loadedImages.set(st.dataUrl, img);
+    }
+    if (img.complete && img.naturalWidth > 0) {
+      c.globalAlpha = Number(st.opacity ?? 1);
+      c.drawImage(img, st.x - st.w / 2, st.y - st.h / 2, st.w, st.h);
+    }
+  }
+  c.restore();
+}
+
+/* ============== DYNAMIC WIDGET SPRITE STRIP GENERATOR ============== */
+function buildWidgetStripCanvas(wg) {
+  const meta = WIDGET_CATALOG[wg.wtype];
+  if (!meta) return null;
+
+  if (meta.kind === 'number') {
+    const cw = Math.max(8, Math.round(Number(wg.cellW || 24)));
+    const ch = Math.max(12, Math.round(Number(wg.cellH || 36)));
+    const symbols = ['-', '.', '/', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ':'];
+    const strip = document.createElement('canvas');
+    strip.width = cw;
+    strip.height = ch * 14;
+    const sctx = strip.getContext('2d');
+
+    symbols.forEach((sym, idx) => {
+      const cell = document.createElement('canvas');
+      cell.width = cw; cell.height = ch;
+      const cctx = cell.getContext('2d');
+      if (wg.fontFamily === 'seg7') {
+        draw7SegGlyph(cctx, sym, cw, ch, wg.color || '#ffaa33', Number(wg.slant || 0), wg.glowColor, Number(wg.glowBlur || 0));
+      } else {
+        if (wg.glowBlur > 0) {
+          cctx.shadowColor = wg.glowColor || wg.color || '#ff951c';
+          cctx.shadowBlur = Number(wg.glowBlur);
+        }
+        const weight = wg.bold ? '700' : '400';
+        cctx.font = `${weight} ${wg.fontSize || Math.round(ch * 0.8)}px ${wg.fontFamily}`;
+        cctx.fillStyle = wg.color || '#ffffff';
+        cctx.textAlign = 'center';
+        cctx.textBaseline = 'middle';
+        cctx.fillText(sym, cw / 2, ch / 2 + 2);
+      }
+      sctx.drawImage(cell, 0, idx * ch);
+    });
+    return { canvas: strip, frameW: cw, frameH: ch, frames: 14 };
+  }
+
+  if (meta.kind === 'weekday' || meta.kind === 'temp_unit') {
+    const fw = Math.max(16, Math.round(Number(wg.w || 60)));
+    const fh = Math.max(12, Math.round(Number(wg.h || 26)));
+    const items = meta.kind === 'weekday'
+      ? String(wg.labels || 'SUN,MON,TUE,WED,THU,FRI,SAT').split(',').slice(0, 7)
+      : ['°C', '°F'];
+    while (meta.kind === 'weekday' && items.length < 7) items.push('DAY');
+    const strip = document.createElement('canvas');
+    strip.width = fw; strip.height = fh * items.length;
+    const sctx = strip.getContext('2d');
+    items.forEach((txt, idx) => {
+      const cell = document.createElement('canvas');
+      cell.width = fw; cell.height = fh;
+      const cctx = cell.getContext('2d');
+      if (wg.glowBlur > 0) {
+        cctx.shadowColor = wg.glowColor || wg.color || '#ff951c';
+        cctx.shadowBlur = Number(wg.glowBlur);
+      }
+      cctx.font = `${wg.bold !== false ? '700' : '400'} ${wg.fontSize || 15}px ${wg.fontFamily || 'monospace'}`;
+      cctx.fillStyle = wg.color || '#ffd280';
+      cctx.textAlign = 'center';
+      cctx.textBaseline = 'middle';
+      cctx.fillText(txt.trim(), fw / 2, fh / 2 + 1);
+      sctx.drawImage(cell, 0, idx * fh);
+    });
+    return { canvas: strip, frameW: fw, frameH: fh, frames: items.length };
+  }
+
+  if (meta.kind === 'batt') {
+    const fw = Math.max(24, Math.round(Number(wg.w || 80)));
+    const fh = Math.max(10, Math.round(Number(wg.h || 22)));
+    const strip = document.createElement('canvas');
+    strip.width = fw; strip.height = fh * 5;
+    const sctx = strip.getContext('2d');
+    for (let lvl = 0; lvl < 5; lvl++) {
+      const cell = document.createElement('canvas');
+      cell.width = fw; cell.height = fh;
+      const c = cell.getContext('2d');
+      const col = wg.color || '#ff951c';
+      const dim = wg.dimColor || 'rgba(255,149,28,0.18)';
+
+      if (wg.barStyle === 'retro-batt') {
+        c.strokeStyle = col; c.lineWidth = 2;
+        roundRectPath(c, 3, 3, fw - 10, fh - 6, 3); c.stroke();
+        c.fillStyle = col; c.fillRect(fw - 7, fh * 0.3, 4, fh * 0.4);
+        const sw = (fw - 20 - 9) / 4;
+        for (let s = 0; s < 4; s++) {
+          c.fillStyle = s < lvl ? col : dim;
+          c.fillRect(7 + s * (sw + 3), 7, sw, fh - 14);
+        }
+      } else {
+        // TVA Industrial Bracket Blocks
+        c.strokeStyle = col; c.lineWidth = 1.6;
+        c.beginPath();
+        c.moveTo(6, 2); c.lineTo(2, 2); c.lineTo(2, fh - 2); c.lineTo(6, fh - 2);
+        c.moveTo(fw - 6, 2); c.lineTo(fw - 2, 2); c.lineTo(fw - 2, fh - 2); c.lineTo(fw - 6, fh - 2);
+        c.stroke();
+        const sw = (fw - 16 - 9) / 4;
+        for (let s = 0; s < 4; s++) {
+          c.save();
+          if (s < lvl && wg.glowBlur > 0) { c.shadowColor = wg.glowColor || col; c.shadowBlur = Number(wg.glowBlur); }
+          c.fillStyle = s < lvl ? col : (lvl === 0 && s === 0 ? '#ef4444' : dim);
+          c.fillRect(8 + s * (sw + 3), 5, sw, fh - 10);
+          c.restore();
+        }
+      }
+      sctx.drawImage(cell, 0, lvl * fh);
+    }
+    return { canvas: strip, frameW: fw, frameH: fh, frames: 5 };
+  }
+
+  if (meta.kind === 'prog') {
+    const fw = Math.max(40, Math.round(Number(wg.w || 280)));
+    const fh = Math.max(6, Math.round(Number(wg.h || 12)));
+    const strip = document.createElement('canvas');
+    strip.width = fw; strip.height = fh * 11;
+    const sctx = strip.getContext('2d');
+    for (let lvl = 0; lvl <= 10; lvl++) {
+      const cell = document.createElement('canvas');
+      cell.width = fw; cell.height = fh;
+      const c = cell.getContext('2d');
+      const col = wg.color || '#ffaa33';
+      const dim = wg.dimColor || 'rgba(255,149,28,0.16)';
+      const gap = 4;
+      const sw = (fw - 8 - gap * 9) / 10;
+      for (let s = 0; s < 10; s++) {
+        const sx = 4 + s * (sw + gap);
+        c.save();
+        const active = s < lvl;
+        if (active && wg.glowBlur > 0) { c.shadowColor = wg.glowColor || col; c.shadowBlur = Number(wg.glowBlur); }
+        c.fillStyle = active ? col : dim;
+        if (wg.barStyle === 'skew-ticks') {
+          c.beginPath();
+          c.moveTo(sx + 2, 1); c.lineTo(sx + sw + 2, 1);
+          c.lineTo(sx + sw - 2, fh - 1); c.lineTo(sx - 2, fh - 1);
+          c.closePath(); c.fill();
+        } else {
+          roundRectPath(c, sx, 2, sw, fh - 4, 2);
+          c.fill();
+        }
+        c.restore();
+      }
+      sctx.drawImage(cell, 0, lvl * fh);
+    }
+    return { canvas: strip, frameW: fw, frameH: fh, frames: 11 };
+  }
+  return null;
+}
+
+function drawWidgetSampleOnCanvas(targetCtx, wg, stripInfo) {
+  const meta = WIDGET_CATALOG[wg.wtype];
+  if (!meta || !stripInfo) return { x0: wg.x - 20, y0: wg.y - 10, w: 40, h: 20 };
+
+  if (meta.kind === 'number') {
+    const strVal = String(simState[meta.sampleKey] || '0');
+    const symMap = { '-': 0, '.': 1, '/': 2, ':': 13 };
+    for (let d = 0; d <= 9; d++) symMap[String(d)] = 3 + d;
+
+    const cw = stripInfo.frameW, ch = stripInfo.frameH;
+    const totalW = strVal.length * cw;
+    const leftX = Number(wg.alignMode) === 2 ? wg.x : wg.x - totalW / 2;
+    const topY = wg.y - ch / 2;
+
+    for (let i = 0; i < strVal.length; i++) {
+      const fidx = symMap[strVal[i]] ?? 3;
+      targetCtx.drawImage(stripInfo.canvas, 0, fidx * ch, cw, ch, Math.round(leftX + i * cw), Math.round(topY), cw, ch);
+    }
+    return { x0: leftX, y0: topY, w: totalW, h: ch };
+  }
+
+  let fidx = 0;
+  if (meta.kind === 'weekday') fidx = Number(simState.week) % 7;
+  else if (meta.kind === 'batt') fidx = Number(simState.batt) % 5;
+  else if (meta.kind === 'prog') fidx = Number(simState.prog) % 11;
+
+  const fw = stripInfo.frameW, fh = stripInfo.frameH;
+  const leftX = wg.x - fw / 2, topY = wg.y - fh / 2;
+  targetCtx.drawImage(stripInfo.canvas, 0, fidx * fh, fw, fh, Math.round(leftX), Math.round(topY), fw, fh);
+  return { x0: leftX, y0: topY, w: fw, h: fh };
+}
+
+let hitBoxes = []; // { id, group: 'static'|'widget', x0, y0, w, h }
+
+function renderCompositeWatchface(targetCtx, includeGuides = false) {
+  renderBackgroundToCanvas(targetCtx);
+  hitBoxes = [];
+
+  // Record static layer hitboxes
+  for (const st of project.staticLayers) {
+    let bw = st.w || 100, bh = st.h || 24;
+    if (st.type === 'text') {
+      bw = Math.max(36, (st.text || '').length * (st.fontSize || 14) * 0.65);
+      bh = (st.fontSize || 14) * 1.3;
+    }
+    hitBoxes.push({ id: st.id, group: 'static', x0: st.x - bw / 2, y0: st.y - bh / 2, w: bw, h: bh });
+  }
+
+  // Draw dynamic widgets
+  for (const wg of project.widgets) {
+    const stripInfo = buildWidgetStripCanvas(wg);
+    const box = drawWidgetSampleOnCanvas(targetCtx, wg, stripInfo);
+    hitBoxes.push({ id: wg.id, group: 'widget', ...box });
+  }
+
+  // Re-apply hardware corner clip cleanly
+  if (hwMaskImg) {
+    targetCtx.save();
+    targetCtx.globalCompositeOperation = 'destination-in';
+    targetCtx.drawImage(hwMaskImg, 0, 0, W, H);
+    targetCtx.restore();
+  }
+
+  // Selection & Snap Guides
+  if (includeGuides && document.getElementById('chkGuides').checked && selectedId) {
+    const hb = hitBoxes.find((b) => b.id === selectedId);
+    if (hb) {
+      targetCtx.save();
+      targetCtx.strokeStyle = '#38bdf8';
+      targetCtx.lineWidth = 1.5;
+      targetCtx.setLineDash([4, 3]);
+      targetCtx.strokeRect(hb.x0 - 3, hb.y0 - 3, hb.w + 6, hb.h + 6);
+      targetCtx.restore();
+    }
+  }
+}
+
+function renderEditor() {
+  renderCompositeWatchface(ctx, true);
+}
+
+/* ============== INTERACTIVE DRAG & KEYBOARD NUDGE ============== */
+let dragState = null;
+
+function findItemById(id) {
+  for (const wg of project.widgets) if (wg.id === id) return { item: wg, group: 'widget' };
+  for (const st of project.staticLayers) if (st.id === id) return { item: st, group: 'static' };
+  return null;
+}
+
+canvas.addEventListener('mousedown', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = W / rect.width, scaleY = H / rect.height;
+  const mx = (e.clientX - rect.left) * scaleX;
+  const my = (e.clientY - rect.top) * scaleY;
+
+  // Search topmost hitBox first
+  for (let i = hitBoxes.length - 1; i >= 0; i--) {
+    const b = hitBoxes[i];
+    if (mx >= b.x0 - 4 && mx <= b.x0 + b.w + 4 && my >= b.y0 - 4 && my <= b.y0 + b.h + 4) {
+      selectedId = b.id;
+      const found = findItemById(b.id);
+      dragState = { id: b.id, startMx: mx, startMy: my, origX: found.item.x, origY: found.item.y };
+      refreshLayerList();
+      renderInspector();
+      renderEditor();
+      return;
+    }
+  }
+  selectedId = null;
+  refreshLayerList();
+  renderInspector();
+  renderEditor();
+});
+
+window.addEventListener('mousemove', (e) => {
+  if (!dragState) return;
+  const rect = canvas.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) * (W / rect.width);
+  const my = (e.clientY - rect.top) * (H / rect.height);
+  const found = findItemById(dragState.id);
+  if (!found) return;
+
+  let nx = Math.round(dragState.origX + (mx - dragState.startMx));
+  let ny = Math.round(dragState.origY + (my - dragState.startMy));
+
+  // Magnetic snap to center X=195, Y=225 unless Alt is held
+  if (!e.altKey) {
+    if (Math.abs(nx - 195) <= 4) nx = 195;
+    if (Math.abs(ny - 225) <= 4) ny = 225;
+  }
+
+  found.item.x = Math.max(0, Math.min(W, nx));
+  found.item.y = Math.max(0, Math.min(H, ny));
+  document.getElementById('coordHud').textContent = `Posisi: X = ${found.item.x}, Y = ${found.item.y} ${found.item.x === 195 ? '(Tengah Horizontal ✨)' : ''}`;
+  renderEditor();
+  const inpX = document.getElementById('insp_x');
+  const inpY = document.getElementById('insp_y');
+  if (inpX) inpX.value = found.item.x;
+  if (inpY) inpY.value = found.item.y;
+});
+
+window.addEventListener('mouseup', () => { dragState = null; });
+
+window.addEventListener('keydown', (e) => {
+  if (!selectedId) return;
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
+  const found = findItemById(selectedId);
+  if (!found) return;
+  const step = e.shiftKey ? 5 : 1;
+  if (e.key === 'ArrowLeft') { found.item.x -= step; e.preventDefault(); }
+  else if (e.key === 'ArrowRight') { found.item.x += step; e.preventDefault(); }
+  else if (e.key === 'ArrowUp') { found.item.y -= step; e.preventDefault(); }
+  else if (e.key === 'ArrowDown') { found.item.y += step; e.preventDefault(); }
+  else return;
+  renderEditor();
+  renderInspector();
+});
+
+/* ============== UI LISTS & INSPECTOR ============== */
+function refreshLayerList() {
+  const listEl = document.getElementById('layerList');
+  listEl.innerHTML = '';
+  const total = project.widgets.length + project.staticLayers.length;
+  document.getElementById('layerCountLabel').textContent = `${total} item`;
+
+  // Show widgets first (topmost), then static layers
+  [...project.widgets].reverse().forEach((wg) => {
+    const meta = WIDGET_CATALOG[wg.wtype];
+    const div = document.createElement('div');
+    div.className = 'layer-item' + (wg.id === selectedId ? ' selected' : '');
+    div.innerHTML = `<div><span class="layer-tag sensor">SENSOR</span>${meta ? meta.label : wg.wtype}</div><span style="color:var(--muted);font-size:11px;">(${wg.x},${wg.y})</span>`;
+    div.onclick = () => { selectedId = wg.id; refreshLayerList(); renderInspector(); renderEditor(); };
+    listEl.appendChild(div);
+  });
+
+  [...project.staticLayers].reverse().forEach((st) => {
+    const div = document.createElement('div');
+    div.className = 'layer-item' + (st.id === selectedId ? ' selected' : '');
+    div.innerHTML = `<div><span class="layer-tag">DESAIN</span>${st.name || st.type}</div><span style="color:var(--muted);font-size:11px;">(${st.x},${st.y})</span>`;
+    div.onclick = () => { selectedId = st.id; refreshLayerList(); renderInspector(); renderEditor(); };
+    listEl.appendChild(div);
+  });
+}
+
+function syncBgInputs() {
+  const bg = project.bg;
+  document.getElementById('bgOuterColor').value = bg.outerColor;
+  document.getElementById('bgInnerColor').value = bg.innerColor;
+  document.getElementById('bgScanline').value = bg.scanline;
+  document.getElementById('lblScanline').textContent = bg.scanline + '%';
+  document.getElementById('bgGrid').value = bg.grid;
+  document.getElementById('lblGrid').textContent = bg.grid + '%';
+  document.getElementById('bgGridColor').value = bg.gridColor;
+  document.getElementById('bgGridSize').value = bg.gridSize;
+  document.getElementById('bgBezelOn').value = bg.bezelOn ? '1' : '0';
+  document.getElementById('bgBezelColor').value = bg.bezelColor;
+  document.getElementById('bgBezelWidth').value = bg.bezelWidth;
+  document.getElementById('lblBezelWidth').textContent = bg.bezelWidth + 'px';
+}
+
+function renderInspector() {
+  const emptyEl = document.getElementById('inspectorEmpty');
+  const formEl = document.getElementById('inspectorForm');
+  const found = selectedId ? findItemById(selectedId) : null;
+  if (!found) {
+    emptyEl.style.display = 'block';
+    formEl.style.display = 'none';
+    return;
+  }
+  emptyEl.style.display = 'none';
+  formEl.style.display = 'block';
+
+  const { item, group } = found;
+  const allFontOpts = [...FONT_OPTIONS, ...customFonts.map((f) => ({ value: `"${f.family}"`, label: `📁 ${f.name}` }))];
+  const fontSelectHtml = (cur) => allFontOpts.map((o) => `<option value='${o.value}' ${cur === o.value ? 'selected' : ''}>${o.label}</option>`).join('');
+
+  let html = `
+    <div class="section-title">
+      <span>${group === 'widget' ? '⚡ Widget Sensor Jam' : '🎨 Layer Desain Background'}</span>
+      <button class="sm" id="btnCenterX">Tengah X (195)</button>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Posisi X</label><input type="number" id="insp_x" value="${item.x}" /></div>
+      <div class="field"><label>Posisi Y</label><input type="number" id="insp_y" value="${item.y}" /></div>
+    </div>
+  `;
+
+  if (group === 'widget') {
+    const meta = WIDGET_CATALOG[item.wtype];
+    if (meta.kind === 'number') {
+      html += `
+        <div class="field"><label>Jenis Font Angka</label><select id="insp_font">${fontSelectHtml(item.fontFamily)}</select></div>
+        <div class="field-row">
+          <div class="field"><label>Lebar Kotak Digit</label><input type="number" id="insp_cw" min="8" max="120" value="${item.cellW || 24}" /></div>
+          <div class="field"><label>Tinggi Kotak Digit</label><input type="number" id="insp_ch" min="12" max="160" value="${item.cellH || 36}" /></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Ukuran Font</label><input type="number" id="insp_fs" min="10" max="140" value="${item.fontSize || 24}" /></div>
+          <div class="field"><label>Perataan</label>
+            <select id="insp_align">
+              <option value="1" ${Number(item.alignMode)!==2?'selected':''}>Tengah (Center)</option>
+              <option value="2" ${Number(item.alignMode)===2?'selected':''}>Rata Kiri (Left)</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Warna Angka</label><input type="color" id="insp_col" value="${toHexColor(item.color)}" /></div>
+          <div class="field"><label>Warna Glow CRT</label><input type="color" id="insp_gcol" value="${toHexColor(item.glowColor || item.color)}" /></div>
+        </div>
+        <div class="field"><label><span>Intensitas Glow CRT</span><span>${item.glowBlur || 0}px</span></label><input type="range" id="insp_gblur" min="0" max="14" value="${item.glowBlur || 0}" /></div>
+        ${item.fontFamily === 'seg7' ? `
+          <div class="field-row">
+            <div class="field"><label>Kemiringan (Slant)</label><input type="number" step="0.01" id="insp_slant" value="${item.slant ?? 0.05}" /></div>
+            <div class="field"><label>Bayangan '88' (Ghost)</label>
+              <select id="insp_ghost"><option value="1" ${item.ghostOn?'selected':''}>Aktif</option><option value="0" ${!item.ghostOn?'selected':''}>Mati</option></select>
+            </div>
+          </div>
+        ` : ''}
+      `;
+    } else if (meta.kind === 'weekday' || meta.kind === 'temp_unit') {
+      html += `
+        ${meta.kind === 'weekday' ? `<div class="field"><label>7 Teks Hari (SUN..SAT)</label><input type="text" id="insp_labels" value="${item.labels || 'SUN,MON,TUE,WED,THU,FRI,SAT'}" /></div>` : ''}
+        <div class="field"><label>Font</label><select id="insp_font">${fontSelectHtml(item.fontFamily)}</select></div>
+        <div class="field-row">
+          <div class="field"><label>Lebar Area</label><input type="number" id="insp_w" value="${item.w || 64}" /></div>
+          <div class="field"><label>Tinggi Area</label><input type="number" id="insp_h" value="${item.h || 26}" /></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Ukuran Font</label><input type="number" id="insp_fs" value="${item.fontSize || 15}" /></div>
+          <div class="field"><label>Warna</label><input type="color" id="insp_col" value="${toHexColor(item.color)}" /></div>
+        </div>
+        <div class="field"><label>Glow CRT</label><input type="range" id="insp_gblur" min="0" max="12" value="${item.glowBlur || 0}" /></div>
+      `;
+    } else {
+      // Bar widget (batt / prog)
+      html += `
+        <div class="field"><label>Gaya Visual Bar</label>
+          <select id="insp_bstyle">
+            <option value="tva-blocks" ${item.barStyle==='tva-blocks'?'selected':''}>TVA Bracket Blocks</option>
+            <option value="tva-timeline" ${item.barStyle==='tva-timeline'?'selected':''}>TVA Timeline Segments</option>
+            <option value="skew-ticks" ${item.barStyle==='skew-ticks'?'selected':''}>Skewed Retro Ticks</option>
+            <option value="retro-batt" ${item.barStyle==='retro-batt'?'selected':''}>Kapsul Baterai Klasik</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Lebar (W)</label><input type="number" id="insp_w" value="${item.w || 100}" /></div>
+          <div class="field"><label>Tinggi (H)</label><input type="number" id="insp_h" value="${item.h || 20}" /></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Warna Aktif</label><input type="color" id="insp_col" value="${toHexColor(item.color)}" /></div>
+          <div class="field"><label>Glow CRT</label><input type="range" id="insp_gblur" min="0" max="12" value="${item.glowBlur || 0}" /></div>
+        </div>
+      `;
+    }
+  } else {
+    // Static Layer Inspector
+    html += `<div class="field"><label>Nama Layer</label><input type="text" id="insp_name" value="${item.name || ''}" /></div>`;
+    if (item.type === 'text') {
+      html += `
+        <div class="field"><label>Isi Teks</label><input type="text" id="insp_text" value="${(item.text || '').replace(/"/g, '&quot;')}" /></div>
+        <div class="field"><label>Jenis Font</label><select id="insp_font">${fontSelectHtml(item.fontFamily)}</select></div>
+        <div class="field-row">
+          <div class="field"><label>Ukuran Font</label><input type="number" id="insp_fs" value="${item.fontSize || 14}" /></div>
+          <div class="field"><label>Jarak Huruf</label><input type="number" step="0.5" id="insp_ls" value="${item.letterSpacing || 0}" /></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Warna Teks</label><input type="color" id="insp_col" value="${toHexColor(item.color)}" /></div>
+          <div class="field"><label>Warna Glow</label><input type="color" id="insp_gcol" value="${toHexColor(item.glowColor || item.color)}" /></div>
+        </div>
+        <div class="field"><label>Glow CRT (${item.glowBlur || 0}px)</label><input type="range" id="insp_gblur" min="0" max="16" value="${item.glowBlur || 0}" /></div>
+      `;
+    } else if (item.type === 'box') {
+      html += `
+        <div class="field-row">
+          <div class="field"><label>Lebar (W)</label><input type="number" id="insp_w" value="${item.w}" /></div>
+          <div class="field"><label>Tinggi (H)</label><input type="number" id="insp_h" value="${item.h}" /></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Warna Isi</label><input type="color" id="insp_fcol" value="${toHexColor(item.fillColor)}" /></div>
+          <div class="field"><label>Warna Garis</label><input type="color" id="insp_scol" value="${toHexColor(item.strokeColor)}" /></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Transparansi Isi</label><input type="number" step="0.05" min="0" max="1" id="insp_falpha" value="${item.fillAlpha ?? 0.7}" /></div>
+          <div class="field"><label>Siku TVA [ ]</label>
+            <select id="insp_brackets"><option value="1" ${item.brackets?'selected':''}>Aktif</option><option value="0" ${!item.brackets?'selected':''}>Mati</option></select>
+          </div>
+        </div>
+      `;
+    } else {
+      html += `
+        <div class="field-row">
+          <div class="field"><label>Lebar (W)</label><input type="number" id="insp_w" value="${item.w || 120}" /></div>
+          <div class="field"><label>Tinggi (H)</label><input type="number" id="insp_h" value="${item.h || 40}" /></div>
+        </div>
+        ${item.color ? `<div class="field"><label>Warna Utama</label><input type="color" id="insp_col" value="${toHexColor(item.color)}" /></div>` : ''}
+        ${item.type === 'image' ? `
+          <div class="field"><label>Opacity Gambar</label><input type="range" id="insp_op" min="0.1" max="1" step="0.05" value="${item.opacity ?? 1}" /></div>
+          <div class="field-row">
+            <div class="field"><label>Warna Glow CRT</label><input type="color" id="insp_gcol" value="${toHexColor(item.glowColor || '#ff7b00')}" /></div>
+            <div class="field"><label>Glow (${item.glowBlur || 0}px)</label><input type="range" id="insp_gblur" min="0" max="16" value="${item.glowBlur || 0}" /></div>
+          </div>
+        ` : ''}
+      `;
+    }
+  }
+
+  html += `
+    <div style="display:flex; gap:6px; margin-top:14px;">
+      <button class="sm" id="btnMoveUp" style="flex:1;">⬆️ Naik</button>
+      <button class="sm" id="btnMoveDown" style="flex:1;">⬇️ Turun</button>
+      <button class="sm danger" id="btnDeleteLayer" style="flex:1;">🗑️ Hapus</button>
+    </div>
+  `;
+
+  formEl.innerHTML = html;
+
+  const bind = (id, fn) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', () => { fn(el.value); renderEditor(); refreshLayerList(); });
+  };
+  bind('insp_x', (v) => item.x = Number(v));
+  bind('insp_y', (v) => item.y = Number(v));
+  bind('insp_w', (v) => item.w = Number(v));
+  bind('insp_h', (v) => item.h = Number(v));
+  bind('insp_cw', (v) => item.cellW = Number(v));
+  bind('insp_ch', (v) => item.cellH = Number(v));
+  bind('insp_fs', (v) => item.fontSize = Number(v));
+  bind('insp_ls', (v) => item.letterSpacing = Number(v));
+  bind('insp_font', (v) => { item.fontFamily = v; renderInspector(); });
+  bind('insp_align', (v) => item.alignMode = Number(v));
+  bind('insp_col', (v) => item.color = v);
+  bind('insp_gcol', (v) => item.glowColor = v);
+  bind('insp_gblur', (v) => item.glowBlur = Number(v));
+  bind('insp_slant', (v) => item.slant = Number(v));
+  bind('insp_ghost', (v) => item.ghostOn = v === '1');
+  bind('insp_labels', (v) => item.labels = v);
+  bind('insp_bstyle', (v) => item.barStyle = v);
+  bind('insp_name', (v) => item.name = v);
+  bind('insp_text', (v) => item.text = v);
+  bind('insp_fcol', (v) => item.fillColor = v);
+  bind('insp_scol', (v) => item.strokeColor = v);
+  bind('insp_falpha', (v) => item.fillAlpha = Number(v));
+  bind('insp_brackets', (v) => item.brackets = v === '1');
+  bind('insp_op', (v) => item.opacity = Number(v));
+
+  document.getElementById('btnCenterX').onclick = () => {
+    item.x = 195; renderEditor(); renderInspector(); refreshLayerList();
+  };
+  document.getElementById('btnDeleteLayer').onclick = () => {
+    const arr = group === 'widget' ? project.widgets : project.staticLayers;
+    const idx = arr.findIndex((x) => x.id === item.id);
+    if (idx >= 0) arr.splice(idx, 1);
+    selectedId = null;
+    refreshLayerList(); renderInspector(); renderEditor();
+  };
+  document.getElementById('btnMoveUp').onclick = () => {
+    const arr = group === 'widget' ? project.widgets : project.staticLayers;
+    const idx = arr.findIndex((x) => x.id === item.id);
+    if (idx >= 0 && idx < arr.length - 1) { [arr[idx], arr[idx+1]] = [arr[idx+1], arr[idx]]; refreshLayerList(); renderEditor(); }
+  };
+  document.getElementById('btnMoveDown').onclick = () => {
+    const arr = group === 'widget' ? project.widgets : project.staticLayers;
+    const idx = arr.findIndex((x) => x.id === item.id);
+    if (idx > 0) { [arr[idx], arr[idx-1]] = [arr[idx-1], arr[idx]]; refreshLayerList(); renderEditor(); }
+  };
+}
+
+function toHexColor(c) {
+  if (!c || typeof c !== 'string') return '#ff951c';
+  if (/^#[0-9a-fA-F]{6}$/.test(c)) return c;
+  return '#ff951c';
+}
+
+/* ============== ADD ELEMENTS & UPLOADS ============== */
+document.getElementById('btnAddWidget').onclick = () => {
+  const wtype = document.getElementById('addWidgetSelect').value;
+  const meta = WIDGET_CATALOG[wtype];
+  let nw;
+  if (meta.kind === 'number') {
+    nw = { id: nextId('wg'), wtype, x: 195, y: 225, cellW: 22, cellH: 34, fontSize: 28, fontFamily: 'seg7', bold: true, slant: 0.05, alignMode: 1, color: '#ffaa33', glowColor: '#ff6a00', glowBlur: 4, ghostOn: false };
+  } else if (meta.kind === 'weekday' || meta.kind === 'temp_unit') {
+    nw = { id: nextId('wg'), wtype, x: 195, y: 150, w: 64, h: 26, labels: 'SUN,MON,TUE,WED,THU,FRI,SAT', fontSize: 15, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, color: '#ffd280', glowColor: '#ff8c1a', glowBlur: 3 };
+  } else {
+    nw = { id: nextId('wg'), wtype, x: 195, y: 290, w: wtype === 'batt' ? 84 : 260, h: 18, barStyle: 'tva-blocks', color: '#ff951c', dimColor: 'rgba(255,149,28,0.18)', glowColor: '#ff6a00', glowBlur: 4 };
+  }
+  project.widgets.push(nw);
+  selectedId = nw.id;
+  refreshLayerList(); renderInspector(); renderEditor();
+};
+
+document.getElementById('btnAddText').onclick = () => {
+  const st = { id: nextId('st'), type: 'text', name: 'Teks Baru', text: 'VARIANT NEXUS', x: 195, y: 225, fontSize: 14, fontFamily: '"SF Mono", Menlo, Monaco, "Courier New", monospace', bold: true, letterSpacing: 1.5, color: '#ffb347', align: 'center', glowColor: '#ff7b00', glowBlur: 4 };
+  project.staticLayers.push(st);
+  selectedId = st.id;
+  refreshLayerList(); renderInspector(); renderEditor();
+};
+
+document.getElementById('btnAddBox').onclick = () => {
+  const st = { id: nextId('st'), type: 'box', name: 'Kotak Frame', x: 195, y: 225, w: 160, h: 64, radius: 6, fillColor: '#1a0c03', fillAlpha: 0.7, strokeColor: '#d97706', strokeWidth: 1.5, brackets: true };
+  project.staticLayers.push(st);
+  selectedId = st.id;
+  refreshLayerList(); renderInspector(); renderEditor();
+};
+
+document.getElementById('btnAddLine').onclick = () => {
+  const st = { id: nextId('st'), type: 'line', name: 'Garis Pembatas', x: 195, y: 225, w: 300, h: 2, color: '#d97706', dashed: false };
+  project.staticLayers.push(st);
+  selectedId = st.id;
+  refreshLayerList(); renderInspector(); renderEditor();
+};
+
+document.getElementById('btnAddWave').onclick = () => {
+  const st = { id: nextId('st'), type: 'tva_wave', name: 'Sacred Timeline', x: 195, y: 280, w: 310, h: 44, color: '#ff951c', branchColor: '#ef4444', glowBlur: 5 };
+  project.staticLayers.push(st);
+  selectedId = st.id;
+  refreshLayerList(); renderInspector(); renderEditor();
+};
+
+document.getElementById('btnAddMissMinutes').onclick = async () => {
+  try {
+    const resp = await fetch('/api/assets/miss_minutes.png');
+    if (!resp.ok) throw new Error('Asset Miss Minutes tidak ditemukan');
+    const blob = await resp.blob();
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const st = {
+          id: nextId('st'), type: 'image', name: 'Miss Minutes',
+          x: 92, y: 197, w: 124, h: 118,
+          opacity: 1, glowColor: '#ff7b00', glowBlur: 6,
+          dataUrl: reader.result
+        };
+        loadedImages.set(reader.result, img);
+        project.staticLayers.push(st);
+        selectedId = st.id;
+        refreshLayerList(); renderInspector(); renderEditor();
+        showToast('🕰️ <b>Miss Minutes ditambahkan!</b> Klik &amp; geser di layar jam untuk atur posisi/ukurannya.');
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(blob);
+  } catch (err) {
+    showToast(`❌ ${err.message}`);
+  }
+};
+
+document.getElementById('btnUploadImg').onclick = () => document.getElementById('fileImgInput').click();
+document.getElementById('fileImgInput').onchange = (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(220 / img.width, 220 / img.height, 1);
+      const st = {
+        id: nextId('st'), type: 'image', name: f.name.slice(0, 20),
+        x: 195, y: 225,
+        w: Math.round(img.width * scale), h: Math.round(img.height * scale),
+        opacity: 1, dataUrl: reader.result
+      };
+      loadedImages.set(reader.result, img);
+      project.staticLayers.push(st);
+      selectedId = st.id;
+      refreshLayerList(); renderInspector(); renderEditor();
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(f);
+  e.target.value = '';
+};
+
+document.getElementById('btnUploadFont').onclick = () => document.getElementById('fileFontInput').click();
+document.getElementById('fileFontInput').onchange = async (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const buf = await f.arrayBuffer();
+  const fam = 'CustomFont_' + (customFonts.length + 1);
+  const face = new FontFace(fam, buf);
+  await face.load();
+  document.fonts.add(face);
+  customFonts.push({ name: f.name, family: fam });
+  showToast(`✅ Font "${f.name}" berhasil dimuat! Pilih di menu Jenis Font.`);
+  renderInspector();
+  e.target.value = '';
+};
+
+/* ============== COMPILER -> STUDIO BACKEND -> PROXY ============== */
+function uint8ToBase64(u8) {
+  let binary = '';
+  const chunk = 0x8000;
+  for (let i = 0; i < u8.length; i += chunk) {
+    binary += String.fromCharCode.apply(null, u8.subarray(i, i + chunk));
+  }
+  return btoa(binary);
+}
+
+async function compileAndArm() {
+  const btn = document.getElementById('btnCompile');
+  const origLabel = btn.innerHTML;
+  btn.innerHTML = '⏳ Mengompilasi .BIN...';
+  btn.disabled = true;
+
+  try {
+    const assets = {};
+    const widgetsPayload = [];
+
+    // 1. Render clean 390x450 background (widget #0: 02 10)
+    const bgCv = document.createElement('canvas');
+    bgCv.width = W; bgCv.height = H;
+    const bgCtx = bgCv.getContext('2d');
+    renderBackgroundToCanvas(bgCtx);
+    const bgData = bgCtx.getImageData(0, 0, W, H).data;
+    assets['bg'] = { width: W, height: H, rgbaBase64: uint8ToBase64(bgData) };
+    widgetsPayload.push({
+      typeHex: '02 10', frames: 1, align: 0, tailHex: '0000000000000000',
+      x: 195, y: 225, assetKey: 'bg'
+    });
+
+    // 2. Render each dynamic widget's sprite strip (deduplicating identical number fonts!)
+    for (const wg of project.widgets) {
+      const meta = WIDGET_CATALOG[wg.wtype];
+      if (!meta) continue;
+      const stripInfo = buildWidgetStripCanvas(wg);
+      const sctx = stripInfo.canvas.getContext('2d');
+      const rgba = sctx.getImageData(0, 0, stripInfo.canvas.width, stripInfo.canvas.height).data;
+
+      // Deduplicate shared number fonts automatically!
+      const styleSig = meta.kind === 'number'
+        ? `num_${wg.fontFamily}_${wg.cellW}x${wg.cellH}_${wg.fontSize}_${wg.color}_${wg.glowColor}_${wg.glowBlur}_${wg.slant}_${wg.bold}`
+        : `wg_${wg.id}`;
+
+      if (!assets[styleSig]) {
+        assets[styleSig] = {
+          width: stripInfo.canvas.width,
+          height: stripInfo.canvas.height,
+          rgbaBase64: uint8ToBase64(rgba),
+        };
+      }
+
+      widgetsPayload.push({
+        typeHex: meta.typeHex,
+        frames: stripInfo.frames,
+        align: meta.kind === 'number' ? Number(wg.alignMode || 1) : 0,
+        tailHex: meta.kind === 'number' ? '0100000000000000' : '0000000000000000',
+        x: Math.round(wg.x),
+        y: Math.round(wg.y),
+        assetKey: styleSig,
+      });
+    }
+
+    // 3. Render clean 162x187 Preview Thumbnail (last widget: 02 11)
+    const fullMock = document.createElement('canvas');
+    fullMock.width = W; fullMock.height = H;
+    renderCompositeWatchface(fullMock.getContext('2d'), false);
+
+    const thumbCv = document.createElement('canvas');
+    thumbCv.width = 162; thumbCv.height = 187;
+    const tctx = thumbCv.getContext('2d');
+    tctx.imageSmoothingEnabled = true;
+    tctx.imageSmoothingQuality = 'high';
+    tctx.drawImage(fullMock, 0, 0, 162, 187);
+    const thumbData = tctx.getImageData(0, 0, 162, 187).data;
+    assets['thumb'] = { width: 162, height: 187, rgbaBase64: uint8ToBase64(thumbData) };
+    widgetsPayload.push({
+      typeHex: '02 11', frames: 1, align: 0, tailHex: '0000000000000000',
+      x: 195, y: 225, assetKey: 'thumb'
+    });
+
+    const res = await fetch('/api/compile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: project.name || 'custom_watchface',
+        previewPngBase64: fullMock.toDataURL('image/png'),
+        assets,
+        widgets: widgetsPayload,
+      })
+    });
+    const out = await res.json();
+    if (!out.ok) throw new Error(out.error || 'Gagal compile');
+
+    document.getElementById('proxyStatusPill').textContent = `Siap Suntik (${out.sizeKB} KB)`;
+    showToast(`🚀 <b>Berhasil Dikompilasi &amp; Dipasang ke Proxy!</b><br>Ukuran: <b>${out.sizeKB} KB</b> • CRC32: <code>${out.crcHex}</code> (${out.elapsedMs}ms)<br>Tinggal nyalakan Proxy iPhone &amp; download 1 watchface baru di aplikasi Aolon!`);
+  } catch (err) {
+    showToast(`❌ Error Compile: ${err.message}`);
+  } finally {
+    btn.innerHTML = origLabel;
+    btn.disabled = false;
+  }
+}
+
+document.getElementById('btnCompile').onclick = compileAndArm;
+document.getElementById('btnDownloadBin').onclick = () => {
+  window.location.href = `/api/download-bin?name=${encodeURIComponent(project.name || 'aolon_gts3_custom')}`;
+};
+
+async function refreshSavedProjectsList(selectedFile = '') {
+  try {
+    const r = await fetch('/api/status');
+    const st = await r.json();
+    const sel = document.getElementById('savedProjectSelect');
+    const cur = selectedFile || (project?.name ? `${project.name}.json` : sel.value);
+    sel.innerHTML = `<option value="">-- Pilih Proyek (${(st.projects || []).length}) --</option>` +
+      (st.projects || []).map((fn) => `<option value="${fn}" ${fn === cur ? 'selected' : ''}>📄 ${fn.replace(/\.json$/, '')}</option>`).join('');
+    if (st.inject) {
+      document.getElementById('proxyStatusPill').textContent = `Proxy Ready (${st.inject.sizeKB} KB)`;
+    }
+    return st.projects || [];
+  } catch {
+    return [];
+  }
+}
+
+async function loadSavedProjectFile(filename) {
+  if (!filename) return;
+  const r = await fetch(`/api/projects/${encodeURIComponent(filename)}`);
+  const out = await r.json();
+  if (out.ok && out.project) {
+    project = out.project;
+    selectedId = null;
+    syncBgInputs(); refreshLayerList(); renderInspector(); renderEditor();
+    await refreshSavedProjectsList(filename);
+    showToast(`📄 Proyek <b>${filename.replace(/\.json$/, '')}</b> dimuat!`);
+  }
+}
+
+document.getElementById('savedProjectSelect').onchange = (e) => {
+  if (e.target.value) loadSavedProjectFile(e.target.value);
+};
+
+document.getElementById('btnSaveJson').onclick = async () => {
+  const name = prompt('Simpan proyek dengan nama:', project.name || 'tva_sacred_timeline');
+  if (!name) return;
+  project.name = name;
+  const res = await fetch('/api/projects', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, project })
+  });
+  const out = await res.json();
+  if (out.ok) {
+    await refreshSavedProjectsList(out.file);
+    showToast(`💾 Proyek tersimpan di <code>projects/${out.file}</code>`);
+  }
+};
+
+document.getElementById('btnDupJson').onclick = async () => {
+  const baseName = (project.name || 'watchface') + '_copy';
+  const name = prompt('Nama proyek hasil duplikat (proyek lama tetap aman):', baseName);
+  if (!name) return;
+  const cloned = JSON.parse(JSON.stringify(project));
+  cloned.name = name;
+  const res = await fetch('/api/projects', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, project: cloned })
+  });
+  const out = await res.json();
+  if (out.ok) {
+    project = cloned;
+    await refreshSavedProjectsList(out.file);
+    showToast(`📑 Berhasil diduplikat ke <code>projects/${out.file}</code>! Proyek sebelumnya tetap aman.`);
+  }
+};
+
+document.getElementById('btnLoadJson').onclick = () => document.getElementById('fileProjectInput').click();
+document.getElementById('fileProjectInput').onchange = (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    project = JSON.parse(r.result);
+    selectedId = null;
+    syncBgInputs(); refreshLayerList(); renderInspector(); renderEditor();
+    showToast(`📂 Proyek "${f.name}" dimuat!`);
+  };
+  r.readAsText(f);
+  e.target.value = '';
+};
+
+/* ============== TABS, CONTROLS & INIT ============== */
+document.querySelectorAll('[data-ltab]').forEach((t) => {
+  t.onclick = () => {
+    document.querySelectorAll('[data-ltab]').forEach((x) => x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('ltab-layers').style.display = t.dataset.ltab === 'layers' ? 'block' : 'none';
+    document.getElementById('ltab-bg').style.display = t.dataset.ltab === 'bg' ? 'block' : 'none';
+  };
+});
+
+document.querySelectorAll('[data-rtab]').forEach((t) => {
+  t.onclick = () => {
+    document.querySelectorAll('[data-rtab]').forEach((x) => x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('rtab-inspector').style.display = t.dataset.rtab === 'inspector' ? 'block' : 'none';
+    document.getElementById('rtab-sim').style.display = t.dataset.rtab === 'sim' ? 'block' : 'none';
+  };
+});
+
+['bgOuterColor', 'bgInnerColor', 'bgScanline', 'bgGrid', 'bgGridColor', 'bgGridSize', 'bgBezelOn', 'bgBezelColor', 'bgBezelWidth'].forEach((id) => {
+  document.getElementById(id).addEventListener('input', () => {
+    project.bg.outerColor = document.getElementById('bgOuterColor').value;
+    project.bg.innerColor = document.getElementById('bgInnerColor').value;
+    project.bg.scanline = Number(document.getElementById('bgScanline').value);
+    project.bg.grid = Number(document.getElementById('bgGrid').value);
+    project.bg.gridColor = document.getElementById('bgGridColor').value;
+    project.bg.gridSize = Number(document.getElementById('bgGridSize').value);
+    project.bg.bezelOn = document.getElementById('bgBezelOn').value === '1';
+    project.bg.bezelColor = document.getElementById('bgBezelColor').value;
+    project.bg.bezelWidth = Number(document.getElementById('bgBezelWidth').value);
+    syncBgInputs();
+    renderEditor();
+  });
+});
+
+['simHour', 'simMin', 'simMonth', 'simDay', 'simWeek', 'simBatt', 'simProg', 'simSteps', 'simBpm', 'simKcal', 'simTemp'].forEach((id) => {
+  document.getElementById(id).addEventListener('input', () => {
+    simState.hour = document.getElementById('simHour').value || '00';
+    simState.min = document.getElementById('simMin').value || '00';
+    simState.month = document.getElementById('simMonth').value || '01';
+    simState.day = document.getElementById('simDay').value || '01';
+    simState.week = Number(document.getElementById('simWeek').value);
+    simState.batt = Number(document.getElementById('simBatt').value);
+    simState.prog = Number(document.getElementById('simProg').value);
+    simState.steps = document.getElementById('simSteps').value || '0';
+    simState.bpm = document.getElementById('simBpm').value || '0';
+    simState.kcal = document.getElementById('simKcal').value || '0';
+    simState.temp = document.getElementById('simTemp').value || '0';
+    document.getElementById('lblSimBatt').textContent = `${simState.batt} (${simState.batt * 25}%)`;
+    document.getElementById('lblSimProg').textContent = `${simState.prog} (${simState.prog * 10}%)`;
+    renderEditor();
+  });
+});
+
+document.getElementById('chkGuides').onchange = () => renderEditor();
+document.getElementById('zoomSelect').onchange = (e) => {
+  document.getElementById('watchBodyWrap').style.transform = `scale(${e.target.value})`;
+};
+
+document.getElementById('btnLoadPreset').onclick = () => {
+  const val = document.getElementById('presetSelect').value;
+  project = createPreset(val);
+  selectedId = null;
+  syncBgInputs(); refreshLayerList(); renderInspector(); renderEditor();
+  showToast(`✨ Template "${document.getElementById('presetSelect').selectedOptions[0].text}" dimuat!`);
+};
+
+let toastTimer = null;
+function showToast(html) {
+  const box = document.getElementById('toastBox');
+  box.innerHTML = html;
+  box.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { box.style.display = 'none'; }, 5500);
+}
+
+// Initialize Studio & auto-load duplicated Miss Minutes project if available!
+(async function init() {
+  project = createPreset('tva');
+  syncBgInputs();
+  refreshLayerList();
+  renderEditor();
+
+  const mImg = new Image();
+  mImg.onload = () => { hwMaskImg = mImg; renderEditor(); };
+  mImg.src = '/api/mask';
+
+  const savedList = await refreshSavedProjectsList();
+  if (savedList.includes('tva_miss_minutes.json')) {
+    await loadSavedProjectFile('tva_miss_minutes.json');
+  } else if (savedList.length > 0) {
+    await loadSavedProjectFile(savedList[savedList.length - 1]);
+  }
+})();
+</script>
+</body>
+</html>
