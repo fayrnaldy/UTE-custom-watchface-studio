@@ -74,8 +74,8 @@ Tool ini dirancang seringkas dan semodular mungkin:
 Buka Terminal (Mac/Linux) atau Command Prompt / PowerShell (Windows), lalu jalankan:
 
 ```bash
-git clone https://github.com/USERNAME_KAMU/aolon-gts3-watchface.git
-cd aolon-gts3-watchface
+git clone https://github.com/fayrnaldy/UTE-custom-watchface-studio.git
+cd UTE-custom-watchface-studio
 npm start
 ```
 

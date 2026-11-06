@@ -45,8 +45,8 @@
 ### 2. Run the Toolkit
 Clone the repository and run:
 ```bash
-git clone https://github.com/YOUR_USERNAME/aolon-gts3-watchface.git
-cd aolon-gts3-watchface
+git clone https://github.com/fayrnaldy/UTE-custom-watchface-studio.git
+cd UTE-custom-watchface-studio
 npm start
 ```
 The terminal will display your auto-detected local IP and running services:
